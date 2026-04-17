@@ -1,0 +1,484 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>reign.io | Buy. Build. Reign.</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Montserrat:wght@400;700&family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- START SCREEN -->
+    <div id="start-screen" class="screen">
+        <div class="start-container glassmorphism">
+            <h1>reign<span>.io</span></h1>
+            <p class="tagline">Buy. Build. Reign.</p>
+            <!-- New: Main Menu Selection -->
+            <div id="main-menu" class="menu-view">
+                <button id="btn-host-match" class="menu-btn primary-btn" style="margin-bottom: 15px;">Host a Private Match</button>
+                <button id="btn-join-match" class="menu-btn secondary-btn">Join a Match</button>
+            </div>
+
+            <!-- Existing: Host Settings (now a sub-view) -->
+            <div id="host-settings" class="menu-view hidden">
+                <p class="settings-hint">Select Game Settings</p>
+                <div class="settings">
+                    <label>Max Players (2-8):</label>
+                    <input type="number" id="player-count" min="2" max="8" value="4">
+                    
+                    <label>Starting Cash:</label>
+                    <input type="number" id="starting-cash" min="500" max="2500" step="100" value="1500">
+                    
+                    <label>Board Edition:</label>
+                    <select id="board-edition">
+                        <option value="classic">Classic Edition</option>
+                        <option value="nyc">New York City</option>
+                    </select>
+
+                    <div class="toggles">
+                        <label><input type="checkbox" id="rule-auctions" checked> Enable Auctions</label>
+                        <label><input type="checkbox" id="rule-evenbuild" checked> Even Building Rule</label>
+                    </div>
+                </div>
+                <div class="menu-actions" style="display:flex; gap:10px;">
+                    <button class="btn-back secondary-btn" style="flex:1;">Back</button>
+                    <button id="btn-start-game" class="primary-btn" style="flex:2;">Start Game</button>
+                </div>
+            </div>
+
+            <!-- New: Join Match View (sliding/appearing container) -->
+            <div id="join-container" class="menu-view hidden">
+                <p class="settings-hint">Enter Match Code</p>
+                <div class="settings">
+                    <input type="text" id="join-code-input" placeholder="ENTER MATCH CODE..." autocomplete="off">
+                </div>
+                <div class="menu-actions" style="display:flex; gap:10px;">
+                    <button class="btn-back secondary-btn" style="flex:1;">Back</button>
+                    <button id="btn-join-enter" class="primary-btn" style="flex:2;">Join Match</button>
+                </div>
+            </div>
+
+            <!-- New: Profile Setup (Name & Color) -->
+            <div id="profile-setup" class="menu-view hidden">
+                <p class="settings-hint">Choose your Identity</p>
+                <div class="settings">
+                    <label>Enter Name:</label>
+                    <input type="text" id="player-name-input" placeholder="Your name..." maxlength="12">
+                    
+                    <label style="margin-top:10px;">Pick a Color:</label>
+                    <div id="color-palette" class="color-palette">
+                        <!-- JS will refresh these, but hardcoded ones ensure it's never empty -->
+                        <div class="color-choice" style="background-color: #ef4444;" data-color="#ef4444"></div>
+                        <div class="color-choice" style="background-color: #3b82f6;" data-color="#3b82f6"></div>
+                        <div class="color-choice" style="background-color: #10b981;" data-color="#10b981"></div>
+                        <div class="color-choice" style="background-color: #f59e0b;" data-color="#f59e0b"></div>
+                        <div class="color-choice" style="background-color: #8b5cf6;" data-color="#8b5cf6"></div>
+                        <div class="color-choice" style="background-color: #ec4899;" data-color="#ec4899"></div>
+                        <div class="color-choice" style="background-color: #14b8a6;" data-color="#14b8a6"></div>
+                        <div class="color-choice" style="background-color: #f97316;" data-color="#f97316"></div>
+                    </div>
+                </div>
+                <div class="menu-actions" style="display:flex; gap:10px;">
+                    <button id="btn-profile-back" class="secondary-btn" style="flex:1;">Back</button>
+                    <button id="btn-profile-ready" class="primary-btn" style="flex:2;">Ready</button>
+                </div>
+            </div>
+
+            <!-- New: Waiting Room -->
+            <div id="waiting-room" class="menu-view hidden">
+                <div class="lobby-header">
+                    <p class="settings-hint">Waiting Room</p>
+                    <div class="room-code-wrapper" style="background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);">
+                        <div id="lobby-room-code" class="room-code-badge" style="background:transparent; padding:0;">####</div>
+                        <button id="btn-copy-lobby-code" class="copy-icon" title="Copy Room Code">
+                            <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="lobby-stats">
+                    <span id="lobby-player-count">1/4</span> Players Connected
+                </div>
+
+                <div id="lobby-list" class="lobby-list">
+                    <!-- Players appear here -->
+                </div>
+
+                <div class="menu-actions" style="display:flex; gap:10px; margin-top:20px;">
+                    <button id="btn-lobby-leave" class="secondary-btn" style="flex:1;">Leave</button>
+                    <button id="btn-lobby-start" class="primary-btn hidden" style="flex:2;">Start Match</button>
+                    <div id="lobby-wait-msg" class="wait-msg">Waiting for host...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MAIN GAME UI -->
+    <div id="game-ui" class="screen hidden">
+        
+        <!-- Left Panel: Chat / System logs -->
+        <div class="sidebar left-sidebar glassmorphism">
+            <!-- Header Section (Will move above board on mobile) -->
+            <div class="game-header">
+                <div class="logo">reign<span>.io</span></div>
+                <button id="btn-open-rules" class="secondary-btn" style="font-size: 0.8rem; padding: 5px 10px;">How to Play</button>
+                <div class="room-code-wrapper">
+                    <span id="room-code-display">LOCAL</span>
+                    <button id="btn-copy-code" class="copy-icon" title="Copy Room Code">
+                        <svg viewBox="0 0 24 24" width="14" height="14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="chat-container">
+                <div class="chat-header">Actions</div>
+                <div class="chat-messages" id="chat-messages">
+                    <!-- Actions will appear here -->
+                </div>
+                <input type="text" id="chat-input" placeholder="Say something...">
+            </div>
+        </div>
+
+        <!-- Center Panel: The Board -->
+        <div class="center-panel">
+            <div id="board" class="board">
+                <!-- Tiles injected by JS -->
+                <!-- Inner Board Area (Dice, Turn info) -->
+                <div class="inner-board">
+                    <div class="dice-container" id="dice-container">
+                        <!-- Die 1 -->
+                        <div id="die1" class="dice">
+                            <div class="face front p-1"><div></div></div>
+                            <div class="face back p-6"><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                            <div class="face right p-3"><div></div><div></div><div></div></div>
+                            <div class="face left p-4"><div></div><div></div><div></div><div></div></div>
+                            <div class="face top p-2"><div></div><div></div></div>
+                            <div class="face bottom p-5"><div></div><div></div><div></div><div></div><div></div></div>
+                        </div>
+                        <!-- Die 2 -->
+                        <div id="die2" class="dice">
+                            <div class="face front p-1"><div></div></div>
+                            <div class="face back p-6"><div></div><div></div><div></div><div></div><div></div><div></div></div>
+                            <div class="face right p-3"><div></div><div></div><div></div></div>
+                            <div class="face left p-4"><div></div><div></div><div></div><div></div></div>
+                            <div class="face top p-2"><div></div><div></div></div>
+                            <div class="face bottom p-5"><div></div><div></div><div></div><div></div><div></div></div>
+                        </div>
+                    </div>
+                    <div id="turn-status" class="turn-status">...</div>
+                    <div class="controls">
+                        <button id="btn-roll" class="action-btn roll-btn hidden">Roll Dice</button>
+                        <button id="btn-jail-fine" class="action-btn hidden" style="background:#ef4444; color:white; border:none;">Pay Fine ($50)</button>
+                        <button id="btn-end-turn" class="action-btn end-btn hidden">End Turn</button>
+                        <button id="btn-buy" class="action-btn buy-btn hidden">Buy for $...</button>
+                        <button id="btn-auction" class="action-btn auction-btn hidden" style="background: #8b5cf6; color: white; border: none;">Auction</button>
+                        
+                        <!-- FIX 4: Debt Warning Label -->
+                        <div id="debt-warning" class="debt-warning hidden">⚠️ Debt must be cleared first</div>
+                    </div>
+                    <div id="activity-log" class="activity-log"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel: Players and Actions -->
+        <div class="sidebar right-sidebar">
+            <div class="players-list" id="players-list">
+                <!-- Players injected here -->
+            </div>
+            
+            <div class="trades-panel glassmorphism">
+                <div class="panel-header">Trades <button class="sm-btn" id="btn-open-trade">Create</button></div>
+                <div id="pending-trades-list" style="margin-top:10px; display:flex; flex-direction:column; gap:8px;">
+                    <!-- Pending trades injected here -->
+                </div>
+                <p class="panel-desc" id="no-trades-msg" style="margin-top:10px;">Make trades with other players to exchange properties or money.</p>
+            </div>
+
+            <div class="properties-panel glassmorphism">
+                <div class="panel-header">My Properties : <span id="my-prop-count">0</span></div>
+                <div class="my-properties-list" id="my-properties-list">
+                    <!-- Currently selected player properties shown here -->
+                </div>
+                <div style="padding: 0 10px 10px 10px;">
+                    <button id="btn-bankrupt" class="bankrupt-btn">Declare Bankruptcy</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Overlays -->
+    <div id="overlay-container" class="hidden">
+        <div class="tap-hint">tap anywhere to close</div>
+        <!-- Card Popup -->
+        <div id="card-popup" class="modal glassmorphism hidden">
+            <h2 id="card-title">Chance</h2>
+            <p id="card-desc">Advance to Go</p>
+            <button id="btn-card-ok" class="primary-btn">OK</button>
+        </div>
+
+        <!-- Auction Modal -->
+        <div id="auction-modal" class="modal auction-modal hidden">
+            <div class="auction-header">Auction</div>
+            <div class="auction-title">
+                <span id="auction-prop-icon"></span><span id="auction-target">Property Name</span>
+            </div>
+            
+            <div class="auction-split">
+                <!-- Left: Bidding -->
+                <div class="auction-bidding-area">
+                    <div class="bid-label">Current bid</div>
+                    <div class="current-bid-display">
+                        <div id="auction-leader-avatar" class="leader-avatar hidden"></div>
+                        <span id="auction-bid">$0</span>
+                    </div>
+                    
+                    <div class="auction-timer-container">
+                        <div class="timer-text">Ends in&nbsp;<span id="auction-timer">10</span>s&nbsp;</div>
+                        <div class="timer-bar"><div id="auction-timer-fill" class="timer-fill"></div></div>
+                    </div>
+                    
+                    <div class="bid-actions-label">I'm bidding...</div>
+                    <div id="auction-bidders-msg" class="hidden" style="margin: 10px 0; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 8px; color: #fbbf24; font-size: 0.9rem; text-align: center; border: 1px solid rgba(251, 191, 36, 0.2);">
+                        You can't bid in this auction (joined late).
+                    </div>
+                    <div class="auction-quick-bids" id="auction-bid-buttons">
+                        <button class="quick-bid-btn" id="btn-bid-1">
+                            <span class="bid-total" id="bid-tot-1">$4</span>
+                            <span class="bid-incr" id="bid-inc-1">+$2</span>
+                        </button>
+                        <button class="quick-bid-btn" id="btn-bid-2">
+                            <span class="bid-total" id="bid-tot-2">$12</span>
+                            <span class="bid-incr" id="bid-inc-2">+$10</span>
+                        </button>
+                        <button class="quick-bid-btn" id="btn-bid-3">
+                            <span class="bid-total" id="bid-tot-3">$102</span>
+                            <span class="bid-incr" id="bid-inc-3">+$100</span>
+                        </button>
+                    </div>
+                    
+                    <div id="auction-history" class="auction-history">
+                        <!-- History injected here -->
+                    </div>
+                </div>
+
+                <!-- Right: Property Card View -->
+                <div class="auction-prop-card" id="auction-card-view">
+                    <div class="prop-card-banner" id="ac-banner"></div>
+                    <div class="prop-card-body">
+                        <div class="prop-card-name" id="ac-name">Property Name</div>
+                        <div class="prop-card-header-cols"><span>when</span><span>get</span></div>
+                        <div class="prop-card-rent-table" id="ac-rent-table">
+                            <!-- Injected -->
+                        </div>
+                        <div class="prop-card-footer">
+                            <div class="price-col" style="flex:2; text-align:left;"><span>Price</span> <br><b id="ac-price">$200</b></div>
+                            <div class="price-col"><span><img src="assets/house.png" style="height:14px; vertical-align:middle; filter: invert(1) brightness(2);"></span> <br><b id="ac-house">$150</b></div>
+                            <div class="price-col"><span><img src="assets/hotel.png" style="height:14px; vertical-align:middle; filter: invert(1) brightness(2);"></span> <br><b id="ac-hotel">$150</b></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rules Modal -->
+        <div id="rules-modal" class="modal hidden" style="text-align: left; width: 500px; max-height: 80vh; overflow-y: auto;">
+            <h2 style="text-align: center; color: var(--accent);">How to Play</h2>
+            <div class="rules-content">
+                <div class="rule-section">
+                    <h3>🏦 The Goal</h3>
+                    <p>Bankrupt your opponents by buying properties and charging rent. The last player standing wins!</p>
+                </div>
+                <div class="rule-section">
+                    <h3>🔥 Auctions</h3>
+                    <p>If a player declines to buy a property, it goes to a <b>Free-for-all Auction</b>. Anyone can bid! The highest bidder takes it.</p>
+                </div>
+                <div class="rule-section">
+                    <h3>💰 Tax Pot (Free Parking)</h3>
+                    <p>All taxes paid go into the central Pot. Land on <b>Tax Heaven</b> to collect the entire pool!</p>
+                </div>
+                <div class="rule-section">
+                    <h3>🤝 Trading</h3>
+                    <p>At any time, tap a player's card to open the Trade Menu. You can exchange money and properties to complete sets.</p>
+                </div>
+                <div class="rule-section">
+                    <h3>🏢 Buildings</h3>
+                    <p>Owned a full color set? Tap a property in your info tab to build houses. 4 houses can be upgraded to a <b>Hotel</b>.</p>
+                </div>
+            </div>
+            <button onclick="closeModals()" class="primary-btn" style="width: 100%; margin-top: 20px;">Got it!</button>
+        </div>
+
+
+        <!-- Property Info Modal -->
+        <div id="property-info-modal" class="modal hidden" style="width: 320px; padding: 15px; background: #171622;">
+            <div class="auction-prop-card" style="width: 100%; border:none; margin-bottom: 10px;">
+                <div class="prop-card-banner" id="pi-banner"></div>
+                <div class="prop-card-body">
+                    <div class="prop-card-name" id="pi-name">Property Name</div>
+                    <div class="prop-card-header-cols"><span>when</span><span>get</span></div>
+                    <div class="prop-card-rent-table" id="pi-rent-table">
+                        <!-- Injected -->
+                    </div>
+                    <div class="prop-card-footer" style="padding-top: 10px;">
+                        <div class="price-col" style="flex:2; text-align:left;"><span>Price</span> <br><b id="pi-price">$200</b></div>
+                        <div class="price-col"><span><img src="assets/house.png" style="height:14px; vertical-align:middle; filter: invert(1) brightness(2);"></span> <br><b id="pi-house">$150</b></div>
+                        <div class="price-col"><span><img src="assets/hotel.png" style="height:14px; vertical-align:middle; filter: invert(1) brightness(2);"></span> <br><b id="pi-hotel">$150</b></div>
+                    </div>
+                    
+                    <div style="margin-top: 15px; display: flex; flex-direction: column; gap: 8px;">
+                        <button id="btn-pi-upgrade" class="primary-btn buy-btn" style="width:100%; display:none;">Build House</button>
+                        <button id="btn-pi-build-all" class="primary-btn buy-btn" style="width:100%; display:none; background: #064e3b;">Build on All Set</button>
+                        <button id="btn-pi-downgrade" class="action-btn" style="width:100%; background: #ef4444; color:white; border:none; display:none;">Sell House</button>
+                        <button id="btn-pi-mortgage" class="action-btn" style="width:100%; background: #fbbf24; color:#171622; border:none; display:none;">Mortgage ($...)</button>
+                        <button id="btn-pi-unmortgage" class="primary-btn buy-btn" style="width:100%; display:none;">Unmortgage ($...)</button>
+                    </div>
+                    
+                    <div style="text-align: center; margin-top: 15px; font-size: 0.8rem; color: #9aa0a6;">
+                        <span id="pi-owner">Owner: None</span><br>
+                        <span id="pi-status" style="color:#fbbf24;"></span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Trade Modal -->
+        <div id="trade-modal" class="modal glassmorphism hidden">
+            <div id="trade-step-1" class="trade-step-container">
+                <h2>Select Player to Trade</h2>
+                <div id="trade-player-list" class="trade-player-grid">
+                    <!-- Dynamic player buttons here -->
+                </div>
+                <button id="btn-trade-cancel-1" class="action-btn end-btn" style="margin-top:20px; width:100%;">Cancel</button>
+            </div>
+            
+            <div id="trade-step-2" class="trade-step-container hidden">
+                <div class="trade-header-text">Setup Your Offer</div>
+                <div class="trade-subtext">
+                    Trading with <span id="trade-target-name" style="color: white; font-weight: 700;">...</span>
+                </div>
+                
+                <div class="trade-layout">
+                    <div class="trade-side" id="trade-my-side">
+                        <div class="trade-side-title">I Have</div>
+                        <input type="number" id="trade-my-money" value="0" min="0">
+                        <input type="range" id="trade-my-range" min="0" value="0" class="minimal-slider">
+                        <div style="display: flex; gap: 8px;">
+                            <button class="orange-btn" onclick="adjustTradeMoney('my', 10)">+10</button>
+                            <button class="orange-btn" onclick="adjustTradeMoney('my', 50)">+50</button>
+                        </div>
+                        <div class="trade-props" id="trade-my-props"></div>
+                    </div>
+                    <div class="trade-side" id="trade-their-side">
+                        <div class="trade-side-title">I Want</div>
+                        <input type="number" id="trade-their-money" value="0" min="0">
+                        <input type="range" id="trade-their-range" min="0" value="0" class="minimal-slider">
+                        <div style="display: flex; gap: 8px;">
+                            <button class="orange-btn" onclick="adjustTradeMoney('their', 10)">+10</button>
+                            <button class="orange-btn" onclick="adjustTradeMoney('their', 50)">+50</button>
+                        </div>
+                        <div class="trade-props" id="trade-their-props"></div>
+                    </div>
+                </div>
+                <div class="trade-actions" style="margin-top:20px; display:flex; gap:10px; width: 100%;">
+                    <button id="btn-trade-back" class="menu-btn end-btn" style="flex:1; margin:0; padding: 12px 0;">Back</button>
+                    <button id="btn-trade-send" class="menu-btn primary-btn buy-btn" style="flex:1; margin:0; padding: 12px 0;">Send Offer</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Incoming Trade Offer -->
+        <div id="trade-incoming-modal" class="modal glassmorphism hidden">
+            <h2 id="trade-inc-header" style="text-align:center; color: var(--accent); margin-top: 0; margin-bottom: 20px;">Trade: Player ➔ Player</h2>
+            <div class="trade-layout">
+                 <div class="trade-side">
+                    <h3>They Offer</h3>
+                    <div id="trade-inc-offer">...</div>
+                 </div>
+                 <div class="trade-side">
+                    <h3>They Want</h3>
+                    <div id="trade-inc-want">...</div>
+                 </div>
+            </div>
+            <div class="trade-actions" style="margin-top:20px; display:flex; gap:10px; width: 100%;">
+                <button id="btn-trade-accept" class="menu-btn primary-btn buy-btn" style="flex: 1; margin: 0; padding: 12px 5px; font-size: 0.9rem;">Accept</button>
+                <button id="btn-trade-negotiate" class="menu-btn" style="flex: 1; margin: 0; padding: 12px 5px; font-size: 0.9rem; background: #fbbf24; color: #171622; border:none;">Negotiate</button>
+                <button id="btn-trade-decline" class="menu-btn end-btn" style="flex: 1; margin: 0; padding: 12px 5px; font-size: 0.9rem;">Decline</button>
+            </div>
+        </div>
+
+        <!-- Outgoing Trade Offer Review -->
+        <div id="trade-outgoing-modal" class="modal glassmorphism hidden">
+            <h2 id="trade-out-header" style="text-align:center; color: var(--accent); margin-top: 0; margin-bottom: 20px;">Review Outgoing Offer</h2>
+            <div class="trade-layout">
+                 <div class="trade-side">
+                    <h3>You Offer</h3>
+                    <div id="trade-out-offer">...</div>
+                 </div>
+                 <div class="trade-side">
+                    <h3>You Want</h3>
+                    <div id="trade-out-want">...</div>
+                 </div>
+            </div>
+            <div class="trade-actions" style="margin-top:20px; display:flex; gap:10px; width: 100%;">
+                <button id="btn-trade-edit" class="menu-btn" style="flex: 1; margin: 0; padding: 12px 5px; font-size: 0.9rem; background: #fbbf24; color: #171622; border:none;">Edit Trade</button>
+                <button id="btn-trade-delete" class="menu-btn end-btn" style="flex: 1; margin: 0; padding: 12px 5px; font-size: 0.9rem; background: #ef4444; color: white; border: none;">Delete Trade</button>
+            </div>
+        </div>
+
+        <!-- Bankruptcy Confirmation Modal -->
+        <div id="bankrupt-modal" class="modal glassmorphism hidden">
+            <div class="auction-header">Bankruptcy</div>
+            <h2 id="bankrupt-player-name" style="margin-bottom:10px;">Player Name</h2>
+            <p style="margin-bottom:25px; color: #cbd5e1;">Are you sure you want to declare bankruptcy? This will remove you from the game and return all your assets to the bank.</p>
+            <div style="display:flex; gap:10px;">
+                <button id="btn-bankrupt-confirm" class="bankrupt-btn" style="flex:1;">Yes, Give Up</button>
+                <button id="btn-bankrupt-cancel" class="action-btn end-btn" style="flex:1;">Cancel</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="utils.js"></script>
+    <script src="classicedition.js"></script>
+    <script src="newyorkcityedition.js"></script>
+    <script src="reign.js"></script>
+    <script src="socket.js"></script>
+    <script src="render.js"></script>
+    <script src="auctionUI.js"></script>
+    <script src="tradeUI.js"></script>
+    <script src="uiHandlers.js"></script>
+    <div id="animation-layer" style="position:fixed; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:9999;"></div>
+    <!-- Victory Modal (FIX 9: No emojis, SVG crown, royal theme) -->
+    <div id="victory-modal" class="victory-modal hidden">
+        <div class="victory-container">
+            <div class="crown-icon">
+                <svg viewBox="0 0 100 70" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10 60 L10 30 L30 50 L50 10 L70 50 L90 30 L90 60 Z" fill="#F5B042" stroke="#B8860B" stroke-width="2" stroke-linejoin="round"/>
+                    <rect x="10" y="58" width="80" height="10" rx="2" fill="#B8860B"/>
+                    <circle cx="50" cy="12" r="5" fill="#fff" opacity="0.9"/>
+                    <circle cx="10" cy="32" r="4" fill="#fff" opacity="0.9"/>
+                    <circle cx="90" cy="32" r="4" fill="#fff" opacity="0.9"/>
+                </svg>
+            </div>
+            <h1 id="winner-name-display">Winner</h1>
+            <p class="conquered-msg">has conquered the realm</p>
+            <div class="victory-stats">
+                <div class="stat-item">
+                    <span class="stat-label">Final Wealth</span>
+                    <span id="win-wealth" class="stat-val">$0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Estates Owned</span>
+                    <span id="win-props" class="stat-val">0</span>
+                </div>
+            </div>
+            <button id="btn-victory-close" class="primary-btn victory-btn">New Game</button>
+        </div>
+    </div>
+
+</body>
+</html>
