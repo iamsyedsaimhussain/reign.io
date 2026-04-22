@@ -53,7 +53,7 @@ class GameEngine {
             return tile;
         });
 
-        return {
+        const state = {
             version: 1,
             started: true,
             boardData: processedBoard,
@@ -78,7 +78,7 @@ class GameEngine {
                 isDisconnected: false,
                 lastDisconnectedAt: null
             })),
-            currentPlayerIndex: 0,
+            currentPlayerIndex: crypto.randomBytes(4).readUInt32BE(0) % players.length,
             taxHeavenPot: 0,
             doublesCount: 0,
             canRollAgain: false,
@@ -91,6 +91,11 @@ class GameEngine {
             lastRollValue: 0,
             ui: { roll: true, endTurn: false, buy: false, jailFine: false }
         };
+
+        const firstPlayer = state.players[state.currentPlayerIndex];
+        state.log.push({ type: "sys", text: `<span style="color:#8b5cf6; font-weight:bold;">Game Started! ${firstPlayer.name} goes first.</span>` });
+        
+        return state;
     }
 
     static processAction(state, uniqueId, action, payload) {
@@ -163,8 +168,8 @@ class GameEngine {
         const p = state.players[state.currentPlayerIndex];
         
         // FIX 3: True Dice Randomization using crypto entropy
-        const d1 = (crypto.randomBytes(1)[0] % 6) + 1;
-        const d2 = (crypto.randomBytes(1)[0] % 6) + 1;
+        const d1 = (crypto.randomBytes(4).readUInt32BE(0) % 6) + 1;
+        const d2 = (crypto.randomBytes(4).readUInt32BE(0) % 6) + 1;
         state.diceRollCount++;
         state.lastRollValue = d1 + d2;
 
