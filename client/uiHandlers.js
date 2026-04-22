@@ -160,8 +160,11 @@ function openPropertyInfo(index) {
     
     // Populate Rent Table
     const table = document.getElementById("pi-rent-table");
+    const headers = document.getElementById("pi-rent-headers");
     table.innerHTML = "";
+    
     if (tile.rent && tile.rent.length > 0) {
+        headers.style.display = "flex";
         const labels = ["Rent", "with 1 🏠", "with 2 🏠", "with 3 🏠", "with 4 🏠", "with 🏨"];
         tile.rent.forEach((val, i) => {
             const row = document.createElement("div");
@@ -169,12 +172,26 @@ function openPropertyInfo(index) {
             row.innerHTML = `<span>${labels[i]}</span> <span>$${val}</span>`;
             table.appendChild(row);
         });
+    } else {
+        headers.style.display = "none";
     }
 
     // Footer prices
     document.getElementById("pi-price").innerText = `$${tile.price || 0}`;
-    document.getElementById("pi-house").innerText = `$${tile.houseCost || 0}`;
-    document.getElementById("pi-hotel").innerText = `$${tile.houseCost || 0}`;
+    
+    const isProperty = tile.type === "property";
+    const dHouseContainer = document.getElementById("pi-house-container");
+    const dHotelContainer = document.getElementById("pi-hotel-container");
+    
+    if (isProperty) {
+        dHouseContainer.style.display = "block";
+        dHotelContainer.style.display = "block";
+        document.getElementById("pi-house").innerText = `$${tile.houseCost || 0}`;
+        document.getElementById("pi-hotel").innerText = `$${tile.houseCost || 0}`;
+    } else {
+        dHouseContainer.style.display = "none";
+        dHotelContainer.style.display = "none";
+    }
 
     const dPiOwner = document.getElementById("pi-owner");
     const ownerId = tile.owner;
