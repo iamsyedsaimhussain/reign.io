@@ -325,8 +325,15 @@ function renderStateLog() {
     const dActivityLog = getActivityLog();
     if (!dActivityLog) return;
     dActivityLog.innerHTML = "";
-    (gameState.log || []).forEach(entry => {
-        if (entry.type === "bid") return; // Keep main log clean, bids are in auction history
+
+    // Merge system log and persistent chats
+    const combinedLog = [...(gameState.log || []), ...(gameState.chats || [])];
+    
+    // Sort by timestamp to maintain chronological order
+    combinedLog.sort((a, b) => (a.time || 0) - (b.time || 0));
+
+    combinedLog.forEach(entry => {
+        if (entry.type === "bid") return; // Keep main log clean
         const d = document.createElement("div");
         d.className = entry.type === "sys" ? "sys-msg" : "chat-msg";
         d.innerHTML = entry.type === "chat" ? `<b>${entry.name}:</b> ${entry.text}` : entry.text;

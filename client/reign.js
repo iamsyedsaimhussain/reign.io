@@ -16,7 +16,8 @@ window.gameState = {
     trade: null,
     pendingTrades: [],
     activeCard: null,
-    log: []
+    log: [],
+    chats: []
 };
 
 window.currentRoomCode = null;
@@ -209,10 +210,23 @@ function updateLobbyUI() {
 function updateClientUI(newState) {
     if (!newState) return;
     
+    // Preserve local chats
+    const oldChats = window.gameState.chats || [];
+    
     // 1. Sync State
     Object.assign(window.gameState, newState);
     
-    // 2. Handle Screen Persistence (Main Menu -> Profile -> Game)
+    // Restore local chats
+    window.gameState.chats = oldChats;
+
+    // Add timestamps to new system logs if they don't have them
+    if (window.gameState.log) {
+        window.gameState.log.forEach(msg => {
+            if (!msg.time) msg.time = Date.now();
+        });
+    }
+
+    // Handle Screen Persistence (Main Menu -> Profile -> Game)
     handleGamePersistence();
 
     if (!gameState.started) {
