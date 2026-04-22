@@ -455,6 +455,42 @@ input:-webkit-autofill:active {
 
 .right-sidebar {
     width: 360px;
+    height: calc(100vh - 30px);
+    max-height: calc(100vh - 30px);
+    position: sticky;
+    top: 15px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+#players-list {
+    flex-shrink: 0;
+}
+
+.sidebar-options-scroll {
+    flex: 1 1 0;
+    min-height: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    padding-right: 5px; /* space for scrollbar */
+}
+
+/* Minimalist Scrollbar for Sidebar Options */
+.sidebar-options-scroll::-webkit-scrollbar {
+    width: 4px;
+}
+.sidebar-options-scroll::-webkit-scrollbar-track {
+    background: transparent;
+}
+.sidebar-options-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+}
+.sidebar-options-scroll::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
 }
 
 .logo {
@@ -1303,11 +1339,7 @@ input:-webkit-autofill:active {
     display: flex;
     flex-direction: column;
     gap: 10px;
-    max-height: 280px;
-    /* Lock to ~4.5 players */
-    overflow-y: auto;
-    padding-right: 5px;
-    /* Space for scrollbar */
+    padding-bottom: 5px;
 }
 
 .player-card {
@@ -1382,15 +1414,11 @@ input:-webkit-autofill:active {
 
 .my-properties-list {
     padding: 10px;
-    max-height: 300px;
-    overflow-y: auto;
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     grid-auto-rows: min-content;
-    /* Ensure rows only take required height */
     gap: 8px;
     align-content: start;
-    /* Align items to the top */
 }
 
 .trade-prop-item {

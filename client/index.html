@@ -188,21 +188,23 @@
                 <!-- Players injected here -->
             </div>
             
-            <div class="trades-panel glassmorphism">
-                <div class="panel-header">Trades <button class="sm-btn" id="btn-open-trade">Create</button></div>
-                <div id="pending-trades-list" style="margin-top:10px; display:flex; flex-direction:column; gap:8px;">
-                    <!-- Pending trades injected here -->
+            <div class="sidebar-options-scroll">
+                <div class="trades-panel glassmorphism">
+                    <div class="panel-header">Trades <button class="sm-btn" id="btn-open-trade">Create</button></div>
+                    <div id="pending-trades-list" style="margin-top:10px; display:flex; flex-direction:column; gap:8px;">
+                        <!-- Pending trades injected here -->
+                    </div>
+                    <p class="panel-desc" id="no-trades-msg" style="margin-top:10px;">Make trades with other players to exchange properties or money.</p>
                 </div>
-                <p class="panel-desc" id="no-trades-msg" style="margin-top:10px;">Make trades with other players to exchange properties or money.</p>
-            </div>
 
-            <div class="properties-panel glassmorphism">
-                <div class="panel-header">My Properties : <span id="my-prop-count">0</span></div>
-                <div class="my-properties-list" id="my-properties-list">
-                    <!-- Currently selected player properties shown here -->
-                </div>
-                <div style="padding: 0 10px 10px 10px;">
-                    <button id="btn-bankrupt" class="bankrupt-btn">Declare Bankruptcy</button>
+                <div class="properties-panel glassmorphism">
+                    <div class="panel-header">My Properties : <span id="my-prop-count">0</span></div>
+                    <div class="my-properties-list" id="my-properties-list">
+                        <!-- Currently selected player properties shown here -->
+                    </div>
+                    <div style="padding: 0 10px 10px 10px;">
+                        <button id="btn-bankrupt" class="bankrupt-btn">Declare Bankruptcy</button>
+                    </div>
                 </div>
             </div>
         </div>
