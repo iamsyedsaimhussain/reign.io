@@ -817,9 +817,17 @@ input:-webkit-autofill:active {
     background: rgba(0, 0, 0, 0.2);
     padding: 1px 4px;
     border-radius: 2px;
-    margin-top: auto;
-    /* Push to the very bottom area */
-    margin-bottom: 2px;
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.tile:not(.top-row) .price {
+    bottom: 2px;
+}
+
+.tile.top-row .price {
+    top: 2px;
 }
 
 
