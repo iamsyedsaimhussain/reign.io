@@ -171,7 +171,7 @@ if (socket) {
 
     socket.on('error_message', (msg) => { 
         console.error("Server Error:", msg);
-        // Optionally show as an in-game notification later, but NO MORE ALERTS
+        alert(msg);
     });
 
     socket.on('host_disconnected', () => {
