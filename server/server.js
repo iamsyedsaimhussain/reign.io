@@ -195,10 +195,11 @@ io.on('connection', (socket) => {
         const room = rooms[roomCode];
         if (room && socket.id === room.hostId) {
             const participants = Object.values(room.playerDetails);
-            if (participants.length < 2) {
-                socket.emit('error_message', "You need at least 2 players to start!");
+            // Check removed: allow starting with 1 player for testing purposes
+            if (participants.length < 1) {
+                socket.emit('error_message', "You need at least 1 player to start!");
                 return;
-            } 
+            }
 
             // Initialize server authoritative state
             room.gameState = GameEngine.initializeState(settings, participants);
