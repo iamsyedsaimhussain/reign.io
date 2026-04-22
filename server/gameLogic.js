@@ -325,8 +325,8 @@ class GameEngine {
         }
     }
 
-    static handleEndTurn(state) {
-        if (!state.ui.endTurn) return;
+    static handleEndTurn(state, force = false) {
+        if (!state.ui.endTurn && !force) return;
         state.ui.roll = true;
         state.ui.endTurn = false;
         state.ui.buy = false;
@@ -481,7 +481,7 @@ class GameEngine {
             }
 
             if (state.players[state.currentPlayerIndex].uniqueId === uniqueId) {
-                this.handleEndTurn(state);
+                this.handleEndTurn(state, true);
             }
         }
         return true;
