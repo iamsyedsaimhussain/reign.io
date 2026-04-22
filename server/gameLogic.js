@@ -499,7 +499,8 @@ class GameEngine {
     static handleDrawCard(state, uniqueId, payload) {
         const type = payload.type; // 'chance' or 'community'
         const deck = type === "chance" ? chanceDeck : communityDeck;
-        const index = Math.floor(Math.random() * deck.length);
+        // FIX: True Card Randomization using crypto entropy
+        const index = crypto.randomBytes(4).readUInt32BE(0) % deck.length;
         const card = deck[index];
 
         state.activeCard = {
