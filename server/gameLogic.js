@@ -6,27 +6,30 @@ const TradeEngine = require('./tradeLogic');
 const crypto = require('crypto');
 
 const chanceDeck = [
-    { text: "Advance to GO", type: "move", position: 0 },
-    { text: "Advance to Illinois Ave", type: "move", position: 24 },
-    { text: "Advance to St. Charles Place", type: "move", position: 11 },
-    { text: "Bank pays you dividend of $50", type: "money", amount: 50 },
-    { text: "Go back 3 spaces", type: "move_relative", amount: -3 },
-    { text: "Go directly to Jail", type: "jail" },
-    { text: "Pay poor tax of $15", type: "money", amount: -15 },
-    { text: "Take a trip to Reading Railroad", type: "move", position: 5 },
-    { text: "You have been elected Chairman of the Board. Pay each player $50", type: "pay_players", amount: 50 },
-    { text: "Your building loan matures. Collect $150", type: "money", amount: 150 }
+    { text: "Advance to Go: Collect $200", type: "move", position: 0 },
+    { text: "Bank Dividend: Bank pays you dividend of $50", type: "money", amount: 50 },
+    { text: "Reverse Gear: Go back 3 spaces", type: "move_relative", amount: -3 },
+    { text: "Speeding Fine: Pay $100 (Added to Tax Heaven)", type: "tax_pot", amount: 100 },
+    { text: "Go to Jail: Advance directly to Jail. Do not pass Go.", type: "jail" },
+    { text: "Loan Maturity: Your building loan matures. Collect $150", type: "money", amount: 150 },
+    { text: "Competition Winner: You have won a crossword competition. Collect $100", type: "money", amount: 100 },
+    { text: "Debt Collector: Pay $100 to clear your outstanding debts. (Added to Tax Heaven)", type: "tax_pot", amount: 100 },
+    { text: "Unlucky Investment: Lose $50 from your balance due to a bad investment. (Added to Tax Heaven)", type: "tax_pot", amount: 50 },
+    { text: "Family Support: Give $100 to a distant relative to help with their expenses. (Subtract from your balance)", type: "money", amount: -100 }
 ];
 
 const communityDeck = [
-    { text: "Advance to GO", type: "move", position: 0 },
-    { text: "Bank error in your favor. Collect $200", type: "money", amount: 200 },
-    { text: "Doctor's fees. Pay $50", type: "money", amount: -50 },
-    { text: "From sale of stock you get $50", type: "money", amount: 50 },
+    { text: "Advance to Go: Collect $200", type: "move", position: 0 },
+    { text: "Bank Error: Bank error in your favor. Collect $200", type: "money", amount: 200 },
+    { text: "Doctor's Fees: Pay $50 (Added to Tax Heaven)", type: "tax_pot", amount: 50 },
+    { text: "Stock Sale: From sale of stock you get $50", type: "money", amount: 50 },
     { text: "Holiday fund matures. Receive $100", type: "money", amount: 100 },
     { text: "Income tax refund. Collect $20", type: "money", amount: 20 },
     { text: "Life insurance matures. Collect $100", type: "money", amount: 100 },
-    { text: "Pay hospital fees of $100", type: "money", amount: -100 }
+    { text: "Hospital Fees: Pay $100 (Added to Tax Heaven)", type: "tax_pot", amount: 100 },
+    { text: "Inheritance: Receive $200 from a distant relative.", type: "money", amount: 200 },
+    { text: "It's time to renovate your properties. Pay $30 per house and $120 per hotel you own.", type: "property_tax", house: 30, hotel: 120 },
+    { text: "Have a redesign for your properties. Pay $25 for each house and $100 for each hotel.", type: "property_tax", house: 25, hotel: 100 }
 ];
 
 class GameEngine {
@@ -229,7 +232,7 @@ class GameEngine {
         if (player.position >= 40) {
             player.position -= 40;
             
-            // FIX 5: GO Salary - 300 if landed directly, 200 for passing
+            // GO Salary - 300 if landed directly, 200 for passing
             if (player.position === 0) {
                 player.money += 300;
                 state.log.push({ type: "sys", text: `<span style="color:#fbbf24; font-weight:bold;">Landed on START! Collect $300</span>` });
@@ -525,6 +528,9 @@ class GameEngine {
             if (card.position < p.position && card.position !== 0) {
                 p.money += 200;
                 state.log.push({ type: "sys", text: `${p.name} passed START and collected $200` });
+            } else if (card.position === 0) {
+                p.money += 300;
+                state.log.push({ type: "sys", text: `<span style="color:#fbbf24; font-weight:bold;">Landed on START! Collect $300</span>` });
             }
             p.position = card.position;
             this.resolveTile(state, p, state.boardData[p.position]);
@@ -540,6 +546,24 @@ class GameEngine {
                     other.money += card.amount;
                 }
             });
+        } else if (card.type === "tax_pot") {
+            p.money -= card.amount;
+            state.taxHeavenPot += card.amount;
+        } else if (card.type === "property_tax") {
+            let total = 0;
+            p.properties.forEach(id => {
+                const tile = state.boardData[id];
+                if (tile.type === "property") {
+                    const h = tile.houses || 0;
+                    if (h === 5) {
+                        total += card.hotel;
+                    } else {
+                        total += (h * card.house);
+                    }
+                }
+            });
+            p.money -= total;
+            state.log.push({ type: "sys", text: `${p.name} paid $${total} for property renovations.` });
         }
 
         state.activeCard = null;

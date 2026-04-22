@@ -155,15 +155,30 @@ io.on('connection', (socket) => {
         const { roomCode, name, color } = data;
         const room = rooms[roomCode];
         if (room && room.playerDetails[socket.id]) {
+            let finalColor = color;
+            
+            // Fix: Enforce color uniqueness on the server
+            const takenColors = Object.values(room.playerDetails)
+                .filter(p => p.id !== socket.id && p.color)
+                .map(p => p.color);
+                
+            if (takenColors.includes(color)) {
+                const DEFAULT_COLORS = ["#ef4444", "#3b82f6", "#10b981", "#f59e0b", "#8b5cf6", "#ec4899", "#14b8a6", "#f97316"];
+                const available = DEFAULT_COLORS.filter(c => !takenColors.includes(c));
+                if (available.length > 0) {
+                    finalColor = available[0];
+                }
+            }
+
             room.playerDetails[socket.id].name = name;
-            room.playerDetails[socket.id].color = color;
+            room.playerDetails[socket.id].color = finalColor;
 
             if (room.gameState) {
                 const uid = room.playerDetails[socket.id].uniqueId;
                 const p = room.gameState.players.find(player => player.uniqueId === uid);
                 if (p) {
                     p.name = name;
-                    p.color = color;
+                    p.color = finalColor;
                 }
             }
 
@@ -206,6 +221,11 @@ io.on('connection', (socket) => {
         if (room && socket.id === room.hostId) {
             room.gameState = null; // Wipe state
             io.to(roomCode).emit('game_reset'); // Tell everyone to return to lobby
+            // Send fresh lobby data so the waiting area doesn't look empty
+            io.to(roomCode).emit('lobby_update', {
+                players: Object.values(room.playerDetails),
+                maxPlayers: room.maxPlayers
+            });
         }
     });
 
