@@ -2661,38 +2661,8 @@ input:-webkit-autofill:active {
     color: #1a1a1a;
     font-size: 1.15rem;
     line-height: 1.5;
-    margin-bottom: 25px;
+    margin-bottom: 5px;
     font-weight: 700;
-}
-
-.card-actions {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    margin-top: 5px;
-}
-
-.card-claim-btn {
-    background: #3b82f6;
-    color: white;
-    border: none;
-    padding: 12px 60px;
-    border-radius: 50px;
-    font-size: 1rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.2s;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-}
-
-.card-claim-btn:hover {
-    background: #2563eb;
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(59, 130, 246, 0.6);
-}
-
-.card-claim-btn:active {
-    transform: translateY(0);
 }
 
 .transparent-overlay {

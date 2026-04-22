@@ -81,8 +81,8 @@ function setupUIListeners() {
     
     document.getElementById("btn-bankrupt-cancel").onclick = closeModals;
 
-    // Card/Chance Modal
-    document.getElementById("btn-card-claim").onclick = () => {
+    // Card/Chance Modal - Now closes on click of the card itself
+    document.getElementById("card-popup").onclick = () => {
         sendAction("RESOLVE_CARD");
         closeModals();
     };
