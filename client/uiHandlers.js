@@ -207,7 +207,6 @@ function openPropertyInfo(index) {
     const isOwner = (me && me.id === ownerId);
     
     // Building Logic
-    const isProperty = tile.type === "property";
     const houses = tile.houses || 0;
     const sameColorTiles = gameState.boardData.filter(t => t.color === tile.color);
     const hasFullSet = isProperty && me && sameColorTiles.every(t => me.properties.includes(t.id));
