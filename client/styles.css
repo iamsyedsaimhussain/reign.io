@@ -2657,37 +2657,12 @@ input:-webkit-autofill:active {
     filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
 }
 
-.card-badge {
-    position: absolute;
-    top: 0;
-    right: 0;
-    background: #ef4444;
-    color: white;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    font-size: 14px;
-    font-weight: 800;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    border: 2px solid white;
-}
-
-.card-title {
-    color: #1a1a1a;
-    font-size: 1.5rem;
-    font-weight: 800;
-    margin-bottom: 8px;
-    margin-top: 5px;
-}
-
 .card-message-text {
-    color: #666;
-    font-size: 1rem;
-    line-height: 1.4;
+    color: #1a1a1a;
+    font-size: 1.15rem;
+    line-height: 1.5;
     margin-bottom: 25px;
-    font-weight: 500;
+    font-weight: 700;
 }
 
 .card-actions {
