@@ -177,7 +177,15 @@ function openPropertyInfo(index) {
     }
 
     // Footer prices
-    document.getElementById("pi-price").innerText = `$${tile.price || 0}`;
+    const dPriceContainer = document.getElementById("pi-price-container");
+    const hidePriceTypes = ["start", "tax_heaven", "community_chest", "chance", "jail", "goto_jail"];
+    
+    if (hidePriceTypes.includes(tile.type)) {
+        dPriceContainer.style.display = "none";
+    } else {
+        dPriceContainer.style.display = "block";
+        document.getElementById("pi-price").innerText = `$${tile.price || 0}`;
+    }
     
     const isProperty = tile.type === "property";
     const dHouseContainer = document.getElementById("pi-house-container");

@@ -326,11 +326,7 @@ function renderStateLog() {
     if (!dActivityLog) return;
     dActivityLog.innerHTML = "";
 
-    // Merge system log and persistent chats
-    const combinedLog = [...(gameState.log || []), ...(gameState.chats || [])];
-    
-    // Sort by timestamp to maintain chronological order
-    combinedLog.sort((a, b) => (a.time || 0) - (b.time || 0));
+    const combinedLog = gameState.displayLog || [];
 
     combinedLog.forEach(entry => {
         if (entry.type === "bid") return; // Keep main log clean

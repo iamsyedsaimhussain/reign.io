@@ -210,21 +210,27 @@ function updateLobbyUI() {
 function updateClientUI(newState) {
     if (!newState) return;
     
-    // Preserve local chats
-    const oldChats = window.gameState.chats || [];
+    // Initialize displayLog if it doesn't exist
+    if (!window.gameState.displayLog) window.gameState.displayLog = [];
     
     // 1. Sync State
     Object.assign(window.gameState, newState);
     
-    // Restore local chats
-    window.gameState.chats = oldChats;
-
-    // Add timestamps to new system logs if they don't have them
-    if (window.gameState.log) {
-        window.gameState.log.forEach(msg => {
-            if (!msg.time) msg.time = Date.now();
-        });
+    // Process new system logs
+    const serverLogs = window.gameState.log || [];
+    const lastCount = window.gameState.lastSysLogCount || 0;
+    
+    if (serverLogs.length > lastCount) {
+        // Append new system logs
+        for (let i = lastCount; i < serverLogs.length; i++) {
+            window.gameState.displayLog.push(serverLogs[i]);
+        }
+    } else if (serverLogs.length < lastCount || serverLogs.length === 0) {
+        // Log was reset (e.g., new game)
+        // Keep existing chats or clear everything? For a new game, clear it.
+        window.gameState.displayLog = [...serverLogs];
     }
+    window.gameState.lastSysLogCount = serverLogs.length;
 
     // Handle Screen Persistence (Main Menu -> Profile -> Game)
     handleGamePersistence();

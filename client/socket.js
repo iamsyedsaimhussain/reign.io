@@ -121,15 +121,14 @@ if (socket) {
     });
 
     socket.on('chat_received', (data) => {
-        // Use the new persistent chats array
-        gameState.chats.push({ 
+        if (!gameState.displayLog) gameState.displayLog = [];
+        gameState.displayLog.push({ 
             type: 'chat', 
             name: data.name, 
             color: data.color, 
-            text: data.text,
-            time: Date.now() 
+            text: data.text
         });
-        if (gameState.chats.length > 100) gameState.chats.shift();
+        if (gameState.displayLog.length > 100) gameState.displayLog.shift();
         renderStateLog();
     });
 
@@ -154,7 +153,8 @@ if (socket) {
             window.gameState.activeCard = null;
             window.gameState.pendingTrades = [];
             window.gameState.players = [];
-            window.gameState.chats = [];
+            window.gameState.displayLog = [];
+            window.gameState.lastSysLogCount = 0;
         }
 
         // Restore screen layout: hide game, show waiting room
