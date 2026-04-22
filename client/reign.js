@@ -189,10 +189,13 @@ function updateLobbyUI() {
         const row = document.createElement("div");
         row.className = "lobby-player-row";
         const isMe = p.uniqueId === myUniqueId;
-        row.innerHTML = `<div class="lobby-p-dot" style="background:${p.color}"></div> ${p.name}${isMe ? ' <span style="font-size:0.75rem; color:var(--accent); font-weight:bold;">(YOU)</span>' : ''}`;
+        const displayName = p.name ? p.name : "<i style='color:#666'>Choosing profile...</i>";
+        const displayColor = p.color ? p.color : "#333";
+        row.innerHTML = `<div class="lobby-p-dot" style="background:${displayColor}"></div> ${displayName}${isMe ? ' <span style="font-size:0.75rem; color:var(--accent); font-weight:bold;">(YOU)</span>' : ''}`;
         list.appendChild(row);
     });
-    document.getElementById("lobby-player-count").innerText = `${lobbyPlayers.length}/${maxPlayersCap}`;
+    const validPlayersCount = lobbyPlayers.filter(p => p.name).length;
+    document.getElementById("lobby-player-count").innerText = `${validPlayersCount}/${maxPlayersCap} Ready`;
     
     const startBtn = document.getElementById("btn-lobby-start");
     const waitMsg = document.getElementById("lobby-wait-msg");
