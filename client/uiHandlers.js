@@ -82,7 +82,7 @@ function setupUIListeners() {
     document.getElementById("btn-bankrupt-cancel").onclick = closeModals;
 
     // Card/Chance Modal
-    document.getElementById("btn-card-close").onclick = () => {
+    document.getElementById("btn-card-claim").onclick = () => {
         sendAction("RESOLVE_CARD");
         closeModals();
     };
@@ -178,7 +178,7 @@ function openPropertyInfo(index) {
 
     // Footer prices
     const dPriceContainer = document.getElementById("pi-price-container");
-    const hidePriceTypes = ["start", "tax_heaven", "community_chest", "chance", "jail", "goto_jail"];
+    const hidePriceTypes = ["start", "tax_heaven", "community_chest", "chance", "jail", "go_to_jail", "tax"];
     
     if (hidePriceTypes.includes(tile.type)) {
         dPriceContainer.style.display = "none";
