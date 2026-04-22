@@ -158,6 +158,7 @@ if (socket) {
         document.getElementById("join-container").classList.add("hidden");
         document.getElementById("host-settings").classList.add("hidden");
         closeModals();
+        if (typeof updateLobbyUI === 'function') updateLobbyUI();
     });
 
     socket.on('error_message', (msg) => { 

@@ -212,11 +212,10 @@
     <!-- Overlays -->
     <div id="overlay-container" class="hidden">
         <div class="tap-hint">tap anywhere to close</div>
-        <!-- Card Popup -->
-        <div id="card-popup" class="modal glassmorphism hidden">
-            <h2 id="card-title">Chance</h2>
-            <p id="card-desc">Advance to Go</p>
-            <button id="btn-card-ok" class="primary-btn">OK</button>
+        <!-- Card Popup (Now styled as a message box) -->
+        <div id="card-popup" class="card-message hidden">
+            <button id="btn-card-close" class="card-close-btn">&times;</button>
+            <div id="card-desc" class="card-message-text">Advance to Go</div>
         </div>
 
         <!-- Auction Modal -->

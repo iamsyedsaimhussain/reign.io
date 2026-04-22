@@ -82,7 +82,7 @@ function setupUIListeners() {
     document.getElementById("btn-bankrupt-cancel").onclick = closeModals;
 
     // Card/Chance Modal
-    document.getElementById("btn-card-ok").onclick = () => {
+    document.getElementById("btn-card-close").onclick = () => {
         sendAction("RESOLVE_CARD");
         closeModals();
     };
@@ -130,8 +130,6 @@ function setupUIListeners() {
 function closeModals() {
     if (cardTimer) clearTimeout(cardTimer);
     if (cardTick) clearInterval(cardTick);
-    const btnOk = document.getElementById("btn-card-ok");
-    if (btnOk) btnOk.innerText = "OK";
 
     // Inform server we stopped viewing if it was a trade
     if (window.currentlyViewingTradeId) {
@@ -139,8 +137,15 @@ function closeModals() {
         window.currentlyViewingTradeId = null;
     }
 
-    document.getElementById("overlay-container").classList.add("hidden");
+    const dOverlay = document.getElementById("overlay-container");
+    dOverlay.classList.add("hidden");
+    dOverlay.classList.remove("transparent-overlay");
+
     document.querySelectorAll(".modal").forEach(m => m.classList.add("hidden"));
+    
+    const dCard = document.getElementById("card-popup");
+    if (dCard) dCard.classList.add("hidden");
+
     const tapHint = document.querySelector(".tap-hint");
     if (tapHint) tapHint.style.visibility = "visible";
 }
@@ -214,32 +219,38 @@ let cardTick = null;
 
 function renderCardPopupUI() {
     if (!gameState.activeCard) return;
-    document.getElementById("card-title").innerText = gameState.activeCard.isChance ? "Chance" : "Community Chest";
-    document.getElementById("card-desc").innerText = gameState.activeCard.text;
-    document.getElementById("overlay-container").classList.remove("hidden");
-    document.getElementById("card-popup").classList.remove("hidden");
+    
+    const dCard = document.getElementById("card-popup");
+    const dDesc = document.getElementById("card-desc");
+    const dOverlay = document.getElementById("overlay-container");
+
+    dDesc.innerText = gameState.activeCard.text;
+    
+    // Gradient logic based on type
+    dCard.classList.remove("surprise-bg", "treasure-bg");
+    if (gameState.activeCard.isChance) {
+        dCard.classList.add("surprise-bg");
+    } else {
+        dCard.classList.add("treasure-bg");
+    }
+
+    dOverlay.classList.remove("hidden");
+    dOverlay.classList.add("transparent-overlay");
+    dCard.classList.remove("hidden");
+
+    // Hide tap hint for cards
+    const tapHint = document.querySelector(".tap-hint");
+    if (tapHint) tapHint.style.visibility = "hidden";
 
     // Clear existing
     if (cardTimer) clearTimeout(cardTimer);
     if (cardTick) clearInterval(cardTick);
 
-    const btnOk = document.getElementById("btn-card-ok");
-    const originalText = "OK";
-    let seconds = 5;
-    btnOk.innerText = `${originalText} (${seconds})`;
-
-    cardTick = setInterval(() => {
-        seconds--;
-        if (seconds > 0) btnOk.innerText = `${originalText} (${seconds})`;
-        else clearInterval(cardTick);
-    }, 1000);
-
+    // Autoclose after 8 seconds (give more time for long text)
     cardTimer = setTimeout(() => {
-        clearInterval(cardTick);
-        btnOk.innerText = originalText;
         sendAction("RESOLVE_CARD");
         closeModals();
-    }, 5000);
+    }, 8000);
 }
 
 function restartGame() {
