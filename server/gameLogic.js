@@ -6,30 +6,29 @@ const TradeEngine = require('./tradeLogic');
 const crypto = require('crypto');
 
 const chanceDeck = [
-    { text: "Advance to Go: Collect $200", type: "move", position: 0 },
-    { text: "Bank Dividend: Bank pays you dividend of $50", type: "money", amount: 50 },
     { text: "Reverse Gear: Go back 3 spaces", type: "move_relative", amount: -3 },
     { text: "Speeding Fine: Pay $100 (Added to Tax Heaven)", type: "tax_pot", amount: 100 },
     { text: "Go to Jail: Advance directly to Jail. Do not pass Go.", type: "jail" },
-    { text: "Loan Maturity: Your building loan matures. Collect $150", type: "money", amount: 150 },
-    { text: "Competition Winner: You have won a crossword competition. Collect $100", type: "money", amount: 100 },
     { text: "Debt Collector: Pay $100 to clear your outstanding debts. (Added to Tax Heaven)", type: "tax_pot", amount: 100 },
-    { text: "Unlucky Investment: Lose $50 from your balance due to a bad investment. (Added to Tax Heaven)", type: "tax_pot", amount: 50 },
-    { text: "Family Support: Give $100 to a distant relative to help with their expenses. (Subtract from your balance)", type: "money", amount: -100 }
+    { text: "Unlucky Investment: Lose $150 from your balance due to a bad investment. (Added to Tax Heaven)", type: "tax_pot", amount: 150 },
+    { text: "Family Support: Receive $100 from a distant relative to help with your expenses.", type: "money", amount: 100 },
+    { text: "It's time to renovate your properties: Pay $30 per house and $120 per hotel you own", type: "property_tax", house: 30, hotel: 120 },
+    { text: "Generous Gift: Receive $150 as a gift from a grateful friend.", type: "money", amount: 150 },
+    { text: "Doctor's Fees: Pay $50 (Added to Tax Heaven)", type: "tax_pot", amount: 50 },
+    { text: "Prize Draw Winner: Receive $100 after winning a lucky draw contest.", type: "money", amount: 100 },
+    { text: "Advance to Go: Collect $300", type: "move", position: 0 }
 ];
 
 const communityDeck = [
-    { text: "Advance to Go: Collect $200", type: "move", position: 0 },
+    { text: "Bank Dividend: Bank pays you dividend of $50", type: "money", amount: 50 },
+    { text: "Loan Maturity: Your building loan matures. Collect $150", type: "money", amount: 150 },
+    { text: "Competition Winner: You have won a crossword competition. Collect $100", type: "money", amount: 100 },
     { text: "Bank Error: Bank error in your favor. Collect $200", type: "money", amount: 200 },
-    { text: "Doctor's Fees: Pay $50 (Added to Tax Heaven)", type: "tax_pot", amount: 50 },
     { text: "Stock Sale: From sale of stock you get $50", type: "money", amount: 50 },
-    { text: "Holiday fund matures. Receive $100", type: "money", amount: 100 },
-    { text: "Income tax refund. Collect $20", type: "money", amount: 20 },
-    { text: "Life insurance matures. Collect $100", type: "money", amount: 100 },
-    { text: "Hospital Fees: Pay $100 (Added to Tax Heaven)", type: "tax_pot", amount: 100 },
-    { text: "Inheritance: Receive $200 from a distant relative.", type: "money", amount: 200 },
-    { text: "It's time to renovate your properties. Pay $30 per house and $120 per hotel you own.", type: "property_tax", house: 30, hotel: 120 },
-    { text: "Have a redesign for your properties. Pay $25 for each house and $100 for each hotel.", type: "property_tax", house: 25, hotel: 100 }
+    { text: "Holiday Fund: Holiday fund matures. Receive $100", type: "money", amount: 100 },
+    { text: "Tax Refund: Income tax refund. Collect $50", type: "money", amount: 50 },
+    { text: "Life Insurance: Life insurance matures. Collect $100", type: "money", amount: 100 },
+    { text: "Loan Maturity: Your building loan matures. Collect $150", type: "money", amount: 150 }
 ];
 
 class GameEngine {
@@ -188,12 +187,11 @@ class GameEngine {
             } else {
                 p.jailTurns++;
                 if (p.jailTurns >= 3) {
-                    state.log.push({ type: "sys", text: `${p.name} has been in prison for 3 turns! Paying $50 to leave.` });
-                    p.money -= 50;
+                    state.log.push({ type: "sys", text: `${p.name} has been in prison for 3 turns! Time served.` });
                     p.inJail = false;
                     p.jailTurns = 0;
-                    this.movePlayer(state, p, d1 + d2);
                     state.canRollAgain = false;
+                    this.updateUI(state, false, true, false, false);
                 } else {
                     state.log.push({ type: "sys", text: `${p.name} did not roll doubles.` });
                     state.canRollAgain = false;
@@ -296,15 +294,21 @@ class GameEngine {
 
         const canAuction = canBuy && state.settings.auctions;
         if (canAuction) {
-            canEndTurn = false; // Must choose Buy or Auction
+            canEndTurn = false;
         }
 
-        // Ensure roll is false since they already moved
-        this.updateUI(state, false, canEndTurn, canBuy, false, {
-            buyText: canBuy ? `Buy for $${tile.price}` : "Buy",
-            endTurnText: "End Turn",
-            auction: canAuction
-        });
+        if (canBuy || canAuction) {
+            // Must choose Buy or Auction first — hide everything else
+            this.updateUI(state, false, false, canBuy, false, {
+                buyText: `Buy for $${tile.price}`,
+                auction: canAuction
+            });
+        } else if (state.canRollAgain) {
+            // Doubles: show ONLY the Roll button but with custom text
+            this.updateUI(state, true, false, false, false, { rollText: "Roll Again" });
+        } else {
+            this.updateUI(state, false, canEndTurn, false, false);
+        }
     }
 
     static handleBuy(state) {
@@ -321,15 +325,22 @@ class GameEngine {
             state.boardData[tile.id].houses = 0;
             
             state.log.push({ type: "sys", text: `${p.name} bought <span style="font-weight:bold;">${tile.name}</span> for $${tile.price}` });
-            this.updateUI(state, false, true, false, false);
+            if (state.canRollAgain) {
+                this.updateUI(state, true, false, false, false, { rollText: "Roll Again" });
+            } else {
+                this.updateUI(state, false, true, false, false);
+            }
         }
     }
 
     static handleEndTurn(state, force = false) {
         if (!state.ui.endTurn && !force) return;
+
         state.ui.roll = true;
         state.ui.endTurn = false;
         state.ui.buy = false;
+        state.canRollAgain = false;
+        state.doublesCount = 0;
         
         // Loop to next player
         do {
@@ -516,7 +527,10 @@ class GameEngine {
         };
         
         state.log.push({ type: "sys", text: `${state.players[state.currentPlayerIndex].name} drew: ${card.text}` });
-        this.updateUI(state, false, true, false, false, { cardActive: true });
+        this.updateUI(state, false, true, false, false, { 
+            cardActive: true,
+            endTurnText: "End Turn"
+        });
         return true;
     }
 
@@ -573,7 +587,11 @@ class GameEngine {
         }
 
         state.activeCard = null;
-        this.updateUI(state, false, true, false, false);
+        if (state.canRollAgain) {
+            this.updateUI(state, true, false, false, false, { rollText: "Roll Again" });
+        } else {
+            this.updateUI(state, false, true, false, false);
+        }
         return true;
     }
 
