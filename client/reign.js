@@ -217,6 +217,14 @@ function updateClientUI(newState) {
     if (!window.gameState.displayLog) window.gameState.displayLog = [];
     
     // 1. Sync State
+    const oldPlayerData = {};
+    const oldActiveCard = window.gameState.activeCard;
+    if (window.gameState.players) {
+        window.gameState.players.forEach(p => { 
+            oldPlayerData[p.id] = { position: p.position, inJail: p.inJail }; 
+        });
+    }
+
     Object.assign(window.gameState, newState);
     
     // Process new system logs
@@ -230,7 +238,6 @@ function updateClientUI(newState) {
         }
     } else if (serverLogs.length < lastCount || serverLogs.length === 0) {
         // Log was reset (e.g., new game)
-        // Keep existing chats or clear everything? For a new game, clear it.
         window.gameState.displayLog = [...serverLogs];
     }
     window.gameState.lastSysLogCount = serverLogs.length;
@@ -242,6 +249,26 @@ function updateClientUI(newState) {
         updateLobbyUI();
         updateColorPalette();
         return;
+    }
+
+    // 2. Check for Movement
+    if (window.gameState.players) {
+        window.gameState.players.forEach(p => {
+            const old = oldPlayerData[p.id];
+            if (old && p.position !== old.position) {
+                // Jail logic
+                const isJailTeleport = (p.position === 10 && p.inJail && !old.inJail);
+                
+                // Card logic: If an active card was resolved during this update, it's a teleport
+                const isCardTeleport = (oldActiveCard !== null && window.gameState.activeCard === null);
+                
+                const isTeleport = isJailTeleport || isCardTeleport;
+
+                if (window.animateMovement) {
+                    window.animateMovement(p.id, old.position, p.position, isTeleport);
+                }
+            }
+        });
     }
 
     // 3. Render Game Visuals

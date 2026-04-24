@@ -721,7 +721,7 @@ input:-webkit-autofill:active {
     border-radius: 6px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     cursor: pointer;
-    overflow: hidden;
+    overflow: visible;
     /* clips non-rotated content */
     box-sizing: border-box;
     z-index: 10;
@@ -1127,7 +1127,7 @@ input:-webkit-autofill:active {
 
 .dice-container {
     display: flex;
-    gap: 40px;
+    gap: 48px;
     margin-bottom: 30px;
     perspective: 1000px;
     /* Crucial for 3D depth */
@@ -1376,14 +1376,131 @@ input:-webkit-autofill:active {
 
 /* Tokens on Board */
 .token {
-    width: 14px;
-    height: 14px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     position: absolute;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.8);
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    z-index: 10;
-    transition: top 0.4s ease, left 0.4s ease, transform 0.4s ease;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    border: 2px solid rgba(255, 255, 255, 0.8);
+    z-index: 100;
+    transition: transform 0.1s ease-out;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+}
+
+/* 2D Height Shadow */
+.token-shadow {
+    position: absolute;
+    width: 24px;
+    height: 12px;
+    background: rgba(0, 0, 0, 0.4);
+    border-radius: 50%;
+    filter: blur(2px);
+    z-index: 99;
+    pointer-events: none;
+    transition: all 0.2s ease-out;
+    transform: translate(-50%, -50%);
+}
+
+.token.hopping {
+    z-index: 101;
+}
+
+/* Task 2: VFX */
+.tile.active-path {
+    /* 2.5D Purplish Glow */
+    box-shadow: 
+        0 0 20px rgba(167, 139, 250, 0.6),
+        0 0 40px rgba(139, 92, 246, 0.4),
+        inset 0 0 15px rgba(167, 139, 250, 0.8),
+        inset 0 2px 5px rgba(255, 255, 255, 0.3); /* Top edge highlight */
+    filter: brightness(1.3);
+    z-index: 100 !important;
+    border: 1.5px solid rgba(167, 139, 250, 0.8) !important;
+    background: linear-gradient(135deg, rgba(88, 28, 135, 0.2), rgba(124, 58, 237, 0.1)) !important;
+    position: absolute;
+    transition: none !important; /* Force instant pop to prevent visual skips */
+}
+
+/* Suble Light Rays from beneath */
+.tile.active-path::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    right: -50%;
+    bottom: -50%;
+    background: conic-gradient(
+        from 0deg,
+        transparent 0deg,
+        rgba(167, 139, 250, 0.15) 20deg,
+        transparent 40deg,
+        rgba(139, 92, 246, 0.1) 80deg,
+        transparent 120deg,
+        rgba(167, 139, 250, 0.15) 160deg,
+        transparent 200deg,
+        rgba(139, 92, 246, 0.1) 240deg,
+        transparent 280deg,
+        rgba(167, 139, 250, 0.15) 320deg,
+        transparent 360deg
+    );
+    filter: blur(25px);
+    animation: rotate-rays 8s linear infinite;
+    pointer-events: none;
+    z-index: -1;
+    border-radius: 50%;
+}
+
+@keyframes rotate-rays {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.tile.destination-aura {
+    animation: destination-pulse 1.2s infinite ease-in-out;
+    box-shadow: 
+        0 0 30px rgba(139, 92, 246, 0.8),
+        0 0 60px rgba(124, 58, 237, 0.5),
+        inset 0 0 20px rgba(167, 139, 250, 1);
+    z-index: 101 !important;
+    border: 2px solid #a78bfa !important;
+}
+
+@keyframes destination-pulse {
+    0% { transform: scale(1); filter: brightness(1.2) drop-shadow(0 0 10px #a78bfa); }
+    50% { transform: scale(1.03); filter: brightness(1.6) drop-shadow(0 0 25px #a78bfa); }
+    100% { transform: scale(1); filter: brightness(1.2) drop-shadow(0 0 10px #a78bfa); }
+}
+
+.tile.tile-pulse {
+    animation: pulse-wave 0.4s ease-out;
+    z-index: 101 !important;
+}
+
+@keyframes pulse-wave {
+    0% { filter: brightness(1); transform: scale(1); }
+    30% { filter: brightness(2); transform: scale(1.02); }
+    100% { filter: brightness(1); transform: scale(1); }
+}
+
+/* squash and stretch */
+@keyframes token-land {
+    0% { transform: translate(-50%, -50%) scale(1.2, 0.8); }
+    50% { transform: translate(-50%, -50%) scale(0.9, 1.1); }
+    100% { transform: translate(-50%, -50%) scale(1, 1); }
+}
+
+.token.landing {
+    animation: token-land 0.15s ease-out;
+}
+
+@keyframes token-spawn {
+    0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
+    60% { transform: translate(-50%, -50%) scale(1.4); opacity: 1; }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+
+.token.spawning {
+    animation: token-spawn 1.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
 /* Panels */
@@ -2140,9 +2257,8 @@ input:-webkit-autofill:active {
 
 .token {
     position: absolute;
-    width: 18px;
-    /* Slightly larger tokens */
-    height: 18px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     border: 2px solid rgba(255, 255, 255, 0.8);
     z-index: 100;
@@ -2241,7 +2357,9 @@ input:-webkit-autofill:active {
         border-radius: 12px;
         box-sizing: border-box;
     }
+}
 
+@media (max-width: 1080px) {
     .game-header .logo {
         font-size: 1.2rem;
         margin-bottom: 0;
@@ -2305,18 +2423,18 @@ input:-webkit-autofill:active {
         padding: 1px 3px;
     }
 
-    /* Micro Dice for Mobile (Richup Style) */
-    .die {
-        width: 22px;
-        height: 22px;
-        font-size: 16px;
-        border-radius: 3px;
-        padding-top: 1px;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.5);
-    }
+    /* Scale 3D Dice for Mobile */
     .dice-container {
-        gap: 15px;
-        top: 36%;
+        gap: 48px;
+        top: 45%;
+        transform: translate(-50%, -50%) scale(0.6);
+    }
+
+    /* Scaled Tokens for Mobile */
+    .token {
+        width: 14px;
+        height: 14px;
+        border-width: 1.5px;
     }
 
     /* Adjust controls/status */

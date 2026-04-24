@@ -5,6 +5,9 @@ const getBoard       = () => document.getElementById("board");
 const getPlayersList = () => document.getElementById("players-list");
 const getActivityLog = () => document.getElementById("chat-messages");
 
+const animatingPlayers = {}; // playerId -> visualPos
+let isGlobalAnimating = false;
+
 const ICON_MAP = {
     start:          "assets/start.png",
     chance:         "assets/surprise.png",
@@ -175,11 +178,13 @@ function renderBoard() {
 
 function renderTokens() {
     document.querySelectorAll(".token").forEach(t => t.remove());
+    document.querySelectorAll(".token-shadow").forEach(s => s.remove());
 
     const posGroups = {};
     gameState.players.forEach(p => {
         if (p.bankrupt) return;
-        const pos = p.position;
+        // Use visual position if animating, otherwise real position
+        const pos = animatingPlayers[p.id] !== undefined ? animatingPlayers[p.id] : p.position;
         if (!posGroups[pos]) posGroups[pos] = [];
         posGroups[pos].push(p);
     });
@@ -194,6 +199,7 @@ function renderTokens() {
             const token = document.createElement("div");
             token.className = "token";
             token.style.backgroundColor = p.color;
+            token.id = `token-p-${p.id}`;
 
             if (idx === 10) {
                 const sub = p.inJail
@@ -202,22 +208,192 @@ function renderTokens() {
                 if (sub) { sub.appendChild(token); return; }
             }
 
-            let top = "50%", left = "50%";
-            const sx = (i - (group.length - 1) / 2) * 13;
+            const { top, left } = getTileTargetPoint(idx);
+            const sx = (i - (group.length - 1) / 2) * 10;
             const sy = (i % 2 === 0 ? 4 : -4);
-
-            if (idx >= 0  && idx <= 10)  top  = "75%";  // bottom row → push toward center
-            if (idx >= 20 && idx <= 30)  top  = "25%";  // top row → push toward center
-            if (idx >= 11 && idx <= 19)  left = "75%";  // left col → push right (toward center)
-            if (idx >= 31 && idx <= 39)  left = "25%";  // right col → push left (toward center)
 
             token.style.top       = top;
             token.style.left      = left;
             token.style.transform = `translate(-50%, -50%) translate(${sx}px, ${sy}px)`;
+            
+            // Task: Cool Spawn Animation
+            if (p.justLanded) {
+                token.classList.add("spawning");
+                delete p.justLanded;
+            }
+
             tileEl.appendChild(token);
         });
     });
 }
+
+// --- TASK 1: Movement Animation ---
+
+async function animateMovement(playerId, startPos, endPos, isTeleport = false) {
+    if (startPos === endPos) return;
+    
+    const player = gameState.players.find(p => p.id === playerId);
+    if (!player) return;
+
+    if (isTeleport) {
+        isGlobalAnimating = true;
+        renderUIControls(); // Lock UI immediately
+
+        player.justLanded = true;
+        renderTokens();
+        
+        // Unlock UI after the "pop" animation finishes (1.6s)
+        setTimeout(() => {
+            isGlobalAnimating = false;
+            renderUIControls();
+        }, 1600); 
+        return;
+    }
+
+    isGlobalAnimating = true;
+    renderUIControls(); // Hide buttons immediately
+
+    animatingPlayers[playerId] = startPos;
+    
+    // Calculate path
+    const path = [];
+    let current = startPos;
+    while (current !== endPos) {
+        current = (current + 1) % 40;
+        path.push(current);
+    }
+
+    // Highlight destination
+    const destTile = document.getElementById(`tile-${endPos}`);
+    if (destTile) destTile.classList.add("destination-aura");
+
+    // Task: Instant Path Highlight - Light up the entire path immediately
+    // Exclude the starting tile as requested
+    // Start delay ensures renderBoard() (called right after animateMovement)
+    // has finished replacing the DOM tiles before we apply the glow classes.
+    // Without this, t1 fires at 0ms and is wiped when renderBoard() recreates the tiles.
+    const pathGlowStartDelay = 60;
+    path.forEach((tid, i) => {
+        setTimeout(() => {
+            const t = document.getElementById(`tile-${tid}`);
+            if (t) t.classList.add("active-path");
+        }, pathGlowStartDelay + i * 20);
+    });
+
+    // Create moving token element inside the board so it moves with camera
+    const layer = getBoard();
+    const token = document.createElement("div");
+    token.className = "token hopping";
+    token.style.backgroundColor = player.color;
+    
+    const shadow = document.createElement("div");
+    shadow.className = "token-shadow";
+    
+    layer.appendChild(shadow);
+    layer.appendChild(token);
+
+    // Initial positioning
+    let currentPos = startPos;
+    
+    for (let i = 0; i < path.length; i++) {
+        const nextTileId = path[i];
+        const fromTile = document.getElementById(`tile-${currentPos}`);
+        const toTile = document.getElementById(`tile-${nextTileId}`);
+        
+        if (!toTile) { currentPos = nextTileId; continue; }
+
+        // If fromTile is missing (e.g. start tile was detached), use toTile as origin
+        const effectiveFrom = fromTile || toTile;
+
+        await performHop(token, shadow, effectiveFrom, toTile, nextTileId === endPos);
+        
+        // Task 2: Collision Trigger on landing
+        toTile.classList.add("tile-pulse");
+        setTimeout(() => toTile.classList.remove("tile-pulse"), 400);
+        
+        // Small delay between hops
+        await new Promise(r => setTimeout(r, 60));
+
+        currentPos = nextTileId;
+    }
+
+    // Landed!
+    delete animatingPlayers[playerId];
+    player.justLanded = true; // Trigger spawn anim in next renderTokens
+    
+    isGlobalAnimating = false;
+    token.remove();
+    shadow.remove();
+    
+    // Clear path glows after a short delay
+    const destTileId = endPos;
+    setTimeout(() => {
+        document.querySelectorAll(".active-path").forEach(t => t.classList.remove("active-path"));
+        const dTile = document.getElementById(`tile-${destTileId}`);
+        if (dTile) dTile.classList.remove("destination-aura");
+    }, 1000);
+
+    renderTokens();
+    renderUIControls(); // Show buttons again
+}
+
+function performHop(token, shadow, fromEl, toEl, isLast) {
+    return new Promise(resolve => {
+        const duration = 300; // Adjusted for a smoother feel (was 150ms)
+        const start = performance.now();
+        
+        // Use board-relative coordinates with "Below the Name" logic
+        const startTarget = getTileTargetPoint(parseInt(fromEl.id.split('-')[1]));
+        const endTarget = getTileTargetPoint(parseInt(toEl.id.split('-')[1]));
+
+        const startX = fromEl.offsetLeft + (fromEl.offsetWidth * (parseFloat(startTarget.left) / 100));
+        const startY = fromEl.offsetTop + (fromEl.offsetHeight * (parseFloat(startTarget.top) / 100));
+        const endX = toEl.offsetLeft + (toEl.offsetWidth * (parseFloat(endTarget.left) / 100));
+        const endY = toEl.offsetTop + (toEl.offsetHeight * (parseFloat(endTarget.top) / 100));
+
+        function step(now) {
+            const elapsed = now - start;
+            const progress = Math.min(elapsed / duration, 1);
+            
+            // Parabolic curve for "Height"
+            const jumpHeight = 40; 
+            const height = Math.sin(progress * Math.PI) * jumpHeight;
+            
+            // Lerp position
+            const currX = startX + (endX - startX) * progress;
+            const currY = startY + (endY - startY) * progress;
+            
+            // Apply Task 1 effects: Scale up + Y-offset
+            const scale = 1 + (Math.sin(progress * Math.PI) * 0.5);
+            token.style.left = `${currX}px`;
+            token.style.top = `${currY - height}px`;
+            token.style.transform = `translate(-50%, -50%) scale(${scale})`;
+
+            // Task 4: Dynamic Shadow
+            shadow.style.left = `${currX}px`;
+            shadow.style.top = `${currY}px`;
+            const shadowScale = 1 - (Math.sin(progress * Math.PI) * 0.3);
+            const shadowBlur = 2 + (Math.sin(progress * Math.PI) * 8);
+            shadow.style.transform = `translate(-50%, -50%) scale(${shadowScale})`;
+            shadow.style.filter = `blur(${shadowBlur}px)`;
+            shadow.style.opacity = 0.4 + (Math.sin(progress * Math.PI) * 0.2);
+
+            if (progress < 1) {
+                requestAnimationFrame(step);
+            } else {
+                // Task 1: Squash and Stretch on landing
+                token.style.transform = ""; // Clear inline transform to let CSS animation run
+                token.classList.add("landing");
+                setTimeout(() => token.classList.remove("landing"), 300);
+                resolve();
+            }
+        }
+        requestAnimationFrame(step);
+    });
+}
+
+// --- TASK 3: Camera System ---
+
 
 function updatePlayersUI() {
     const dPlayersList = getPlayersList();
@@ -262,17 +438,22 @@ function updatePlayersUI() {
 
 function renderUIControls() {
     if (document.getElementById("game-ui").classList.contains("hidden")) return;
+    
     const ui = gameState.ui;
-    if (!ui) return;
-
-    const cp   = gameState.players[gameState.currentPlayerIndex];
-    const isMe = cp && cp.uniqueId === myUniqueId;
-
     const btnRoll     = document.getElementById("btn-roll");
     const btnEnd      = document.getElementById("btn-end-turn");
     const btnBuy      = document.getElementById("btn-buy");
     const btnAuction  = document.getElementById("btn-auction");
     const btnJailFine = document.getElementById("btn-jail-fine");
+
+    // Task: Hide controls during animation
+    if (isGlobalAnimating || !ui) {
+        [btnRoll, btnEnd, btnBuy, btnAuction, btnJailFine].forEach(b => b.classList.add("hidden"));
+        return;
+    }
+
+    const cp   = gameState.players[gameState.currentPlayerIndex];
+    const isMe = cp && cp.uniqueId === myUniqueId;
     const dTurnStatus = document.getElementById("turn-status");
 
     // Update Turn Status Text
@@ -314,6 +495,16 @@ function renderUIControls() {
             }
         }
 
+        if (ui.roll) {
+            btnRoll.innerText = ui.rollText || "Roll Dice";
+            // Orange color when showing "Roll Again"
+            if (ui.rollText === "Roll Again") {
+                btnRoll.classList.add("roll-again-btn");
+            } else {
+                btnRoll.classList.remove("roll-again-btn");
+            }
+        }
+        
         if (ui.buy      && ui.buyText)     btnBuy.innerText = ui.buyText;
         if (ui.endTurn  && ui.endTurnText) btnEnd.innerText = ui.endTurnText;
     } else {
@@ -351,9 +542,24 @@ function animateMoneyDelta(playerId, delta) {
     setTimeout(() => el.remove(), 1200);
 }
 
+function getTileTargetPoint(idx) {
+    let top = 50, left = 50;
+    const isCorner = (idx === 0 || idx === 10 || idx === 20 || idx === 30);
+    
+    if (!isCorner) {
+        if (idx >= 0  && idx <= 10) top  = 65; // Bottom row: move down
+        if (idx >= 20 && idx <= 30) top  = 35; // Top row: move up
+        if (idx >= 11 && idx <= 19) left = 35; // Left col: move left (outer)
+        if (idx >= 31 && idx <= 39) left = 65; // Right col: move right (outer)
+    }
+    
+    return { top: top + "%", left: left + "%" };
+}
+
 window.renderBoard   = renderBoard;
 window.renderTokens  = renderTokens;
 window.updatePlayersUI  = updatePlayersUI;
 window.renderUIControls = renderUIControls;
 window.renderStateLog   = renderStateLog;
 window.animateMoneyDelta = animateMoneyDelta;
+window.animateMovement = animateMovement;

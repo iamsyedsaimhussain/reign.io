@@ -55,7 +55,6 @@ function updateTradeSidebar() {
                 const vList = document.createElement("div");
                 vList.className = "trade-viewers-container";
                 trade.viewers.forEach(uid => {
-                    if (uid === window.myUniqueId) return; // Don't show myself
                     const viewer = gameState.players.find(p => p.uniqueId === uid);
                     if (viewer) {
                         const dot = document.createElement("div");
