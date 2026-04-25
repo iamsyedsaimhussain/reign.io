@@ -2594,7 +2594,7 @@ input:-webkit-autofill:active {
 
     /* Adjust controls/status */
     .controls {
-        top: 56%;
+        top: 68%;
         gap: 5px;
     }
 

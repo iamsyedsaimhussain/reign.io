@@ -214,6 +214,7 @@ class GameEngine {
                 return { d1, d2 };
             } else {
                 state.canRollAgain = true;
+                state.log.push({ type: "sys", text: `<span style="color:#f59e0b; font-weight:800;">DOUBLES!</span> ${p.name} gets to roll again!` });
             }
         } else {
             state.doublesCount = 0;

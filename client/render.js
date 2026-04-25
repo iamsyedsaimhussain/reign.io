@@ -433,15 +433,25 @@ function renderUIControls() {
     const isMe = cp && cp.uniqueId === myUniqueId;
     const dTurnStatus = document.getElementById("turn-status");
 
-    // Update Turn Status Text
+    // Update Turn Status Text (At a Glance feature)
     if (dTurnStatus) {
-        const actingPlayer = cp;
-        const tile = actingPlayer ? gameState.boardData[actingPlayer.position] : null;
-
-        if (ui.roll) {
-            dTurnStatus.innerText = isMe ? "Your turn to roll" : `${actingPlayer.name}'s turn to roll`;
+        // PRIORITY: If we are in a 'Roll Again' state, show that clearly
+        if (ui.roll && ui.rollText === "Roll Again") {
+            dTurnStatus.innerText = isMe ? "DOUBLES! You get to roll again!" : `${cp.name} rolled DOUBLES and gets to roll again!`;
+            dTurnStatus.style.color = "#fbbf24"; // Highlight in gold
         } else {
-            dTurnStatus.innerText = actingPlayer ? `${actingPlayer.name} landed on ${tile.name}` : "";
+            // Otherwise show the latest game-related action
+            const gameLogs = (gameState.displayLog || []).filter(l => l.type !== "chat");
+            const latest = gameLogs[gameLogs.length - 1];
+            
+            if (latest) {
+                const temp = document.createElement("div");
+                temp.innerHTML = latest.text;
+                dTurnStatus.innerText = temp.innerText || temp.textContent;
+            } else {
+                dTurnStatus.innerText = "Game started. Waiting for moves...";
+            }
+            dTurnStatus.style.color = ""; // Reset to default subtle color
         }
     }
 
