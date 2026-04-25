@@ -41,7 +41,7 @@
     box-sizing: border-box;
     font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     user-select: none;
-    /* Prevent accidental text selection */
+    -webkit-tap-highlight-color: transparent; /* Remove ugly blue tap highlight on mobile */
 }
 
 input,
