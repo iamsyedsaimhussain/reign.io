@@ -2551,6 +2551,15 @@ input:-webkit-autofill:active {
         order: 5;
         height: auto;
     }
+
+    .sidebar-options-scroll {
+        flex: none;
+        height: auto;
+        overflow: visible;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
 }
 
 /* Mobile Specific Optimizations (< 600px) */
