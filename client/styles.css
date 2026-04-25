@@ -2528,7 +2528,10 @@ input:-webkit-autofill:active {
     .sidebar,
     .right-sidebar {
         width: 100%;
+        height: auto;
         max-height: none;
+        position: relative;
+        top: 0;
     }
 
     .center-panel {
@@ -2538,12 +2541,15 @@ input:-webkit-autofill:active {
     }
 
     .chat-container {
+        width: 100%;
         min-height: 250px;
         order: 10;
+        margin-top: 5px;
     }
 
     .right-sidebar {
         order: 5;
+        height: auto;
     }
 }
 
