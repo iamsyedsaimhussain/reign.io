@@ -56,8 +56,7 @@ html, body {
     overflow: hidden;
     height: 100%;
     width: 100%;
-    position: fixed; /* Lock everything to prevent rubber-banding on mobile */
-    touch-action: none; /* Prevent accidental zoom/scroll gestures */
+    overscroll-behavior: contain; /* Prevents rubber-banding but allows refresh gesture */
 }
 
 .hidden {
