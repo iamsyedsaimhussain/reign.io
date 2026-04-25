@@ -53,10 +53,10 @@ textarea {
 html, body {
     background-color: var(--bg-color);
     color: var(--text-primary);
-    overflow: hidden;
+    overflow-x: hidden;
+    overflow-y: auto;
     height: 100%;
     width: 100%;
-    overscroll-behavior: contain; /* Prevents rubber-banding but allows refresh gesture */
 }
 
 .hidden {
