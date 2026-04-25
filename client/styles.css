@@ -50,12 +50,14 @@ textarea {
     /* Allow selection in input fields */
 }
 
-body {
+html, body {
     background-color: var(--bg-color);
     color: var(--text-primary);
-    overflow-x: hidden;
-    overflow-y: auto;
-    /* Allow vertical scrolling for responsiveness */
+    overflow: hidden;
+    height: 100%;
+    width: 100%;
+    position: fixed; /* Lock everything to prevent rubber-banding on mobile */
+    touch-action: none; /* Prevent accidental zoom/scroll gestures */
 }
 
 .hidden {
@@ -72,8 +74,11 @@ body {
 }
 
 /* START SCREEN */
-#start-screen {
+#start-screen, #game-ui, .screen {
     height: 100vh;
+    height: 100dvh; /* Dynamic viewport height for mobile */
+    width: 100vw;
+    overflow: hidden;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -81,10 +86,18 @@ body {
 }
 
 .start-container {
-    padding: 40px;
-    width: 400px;
+    padding: 30px;
+    width: 90%;
+    max-width: 400px;
+    max-height: 90dvh;
+    overflow-y: auto;
     text-align: center;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    scrollbar-width: none; /* Hide scrollbar for clean look */
+}
+
+.start-container::-webkit-scrollbar {
+    display: none;
 }
 
 .start-container h1 {
