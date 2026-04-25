@@ -140,7 +140,10 @@ function updateAuctionUI() {
     const dHist = document.getElementById("auction-history");
     if (dHist && gameState.log) {
         dHist.innerHTML = "";
-        const bids = gameState.log.filter(l => l.type === 'bid').slice(-5).reverse();
+        const bids = gameState.log
+            .filter(l => l.type === 'bid' && l.timestamp >= (auc.startTime || 0))
+            .slice(-5)
+            .reverse();
         bids.forEach(bid => {
             const hRow = document.createElement("div");
             hRow.className = "auction-history-item";

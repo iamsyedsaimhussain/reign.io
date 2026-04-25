@@ -221,7 +221,12 @@ function updateClientUI(newState) {
     const oldActiveCard = window.gameState.activeCard;
     if (window.gameState.players) {
         window.gameState.players.forEach(p => { 
-            oldPlayerData[p.id] = { position: p.position, inJail: p.inJail }; 
+            oldPlayerData[p.id] = { 
+                position: p.position, 
+                inJail: p.inJail, 
+                color: p.color, 
+                bankrupt: p.bankrupt 
+            }; 
         });
     }
 
@@ -251,33 +256,60 @@ function updateClientUI(newState) {
         return;
     }
 
-    // 2. Check for Movement
+    // 2. State Prep: Identify movements and set animating status BEFORE initial render
+    const animationsToStart = [];
     if (window.gameState.players) {
+        const currentIds = window.gameState.players.map(p => p.id);
+        
+        // Detect Removals
+        Object.keys(oldPlayerData).forEach(oldId => {
+            const id = parseInt(oldId);
+            if (!currentIds.includes(id)) {
+                const oldP = oldPlayerData[oldId];
+                if (window.triggerDespawn) {
+                    window.triggerDespawn({ id: id, color: oldP.color, position: oldP.position });
+                }
+            }
+        });
+
         window.gameState.players.forEach(p => {
             const old = oldPlayerData[p.id];
-            if (old && p.position !== old.position) {
-                // Jail logic
-                const isJailTeleport = (p.position === 10 && p.inJail && !old.inJail);
-                
-                // Card logic: If an active card was resolved during this update, it's a teleport
-                const isCardTeleport = (oldActiveCard !== null && window.gameState.activeCard === null);
-                
-                const isTeleport = isJailTeleport || isCardTeleport;
+            if (old) {
+                if (p.position !== old.position) {
+                    const isJailTeleport = (p.position === 10 && p.inJail && !old.inJail);
+                    const isCardTeleport = (oldActiveCard !== null && window.gameState.activeCard === null);
+                    const isTeleport = isJailTeleport || isCardTeleport;
 
-                if (window.animateMovement) {
-                    window.animateMovement(p.id, old.position, p.position, isTeleport);
+                    // Set status before renderBoard
+                    if (window.animatingPlayers) {
+                        window.animatingPlayers[p.id] = old.position;
+                    }
+                    animationsToStart.push({ id: p.id, from: old.position, to: p.position, isTeleport });
+                }
+
+                if (p.bankrupt && !old.bankrupt) {
+                    if (window.triggerDespawn) {
+                        window.triggerDespawn({ id: p.id, color: p.color, position: p.position });
+                    }
                 }
             }
         });
     }
 
-    // 3. Render Game Visuals
+    // 3. Render Fresh State
     renderBoard();
     updatePlayersUI();
     renderUIControls();
     renderStateLog();
     updateTradeSidebar();
     checkTradeInvalidation();
+
+    // 4. Fire off animations on the freshly rendered board
+    animationsToStart.forEach(anim => {
+        if (window.animateMovement) {
+            window.animateMovement(anim.id, anim.from, anim.to, anim.isTeleport);
+        }
+    });
 
     // FIX 9: Premium Victory Screen (standalone, not inside overlay-container)
     if (gameState.winner) {

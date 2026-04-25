@@ -1,24 +1,24 @@
 // Visual Engine for Reign.io
 // All board positioning matches the CSS percentage system (cSize=14%, eSize=8%)
 // Lazy getters — DOM may not exist at parse time, so we resolve on demand
-const getBoard       = () => document.getElementById("board");
+const getBoard = () => document.getElementById("board");
 const getPlayersList = () => document.getElementById("players-list");
 const getActivityLog = () => document.getElementById("chat-messages");
 
-const animatingPlayers = {}; // playerId -> visualPos
+window.animatingPlayers = {}; // playerId -> visualPos
 let isGlobalAnimating = false;
 
 const ICON_MAP = {
-    start:          "assets/start.png",
-    chance:         "assets/surprise.png",
-    community_chest:"assets/treasure.png",
-    tax:            "assets/luxury tax (1).png",
-    tax_heaven:     "assets/tax heaven.png",
-    railroad:       "assets/airport (1).png",
+    start: "assets/start.png",
+    chance: "assets/surprise.png",
+    community_chest: "assets/treasure.png",
+    tax: "assets/luxury tax (1).png",
+    tax_heaven: "assets/tax heaven.png",
+    railroad: "assets/airport (1).png",
 };
 const UTILITY_ICONS = {
     "Electric Company": "assets/electric company (1).png",
-    "Water Company":    "assets/water company (1).png",
+    "Water Company": "assets/water company (1).png",
 };
 
 function tileTitle(name) {
@@ -119,54 +119,54 @@ function renderBoard() {
 
         // POSITIONING — percentage-based matching the CSS system
         let top, left, w, h, sideClass;
-        const c = 14; 
-        const e = 8;  
+        const c = 14;
+        const e = 8;
 
-        if (index >= 0 && index <= 10) {          
+        if (index >= 0 && index <= 10) {
             sideClass = "bottom-row";
-            top  = (100 - c) + "%";
-            h    = c + "%";
-            if (index === 0) {                     
+            top = (100 - c) + "%";
+            h = c + "%";
+            if (index === 0) {
                 left = (100 - c) + "%"; w = c + "%";
                 sideClass += " corner";
-            } else if (index === 10) {             
+            } else if (index === 10) {
                 left = "0%"; w = c + "%";
                 sideClass += " corner";
             } else {
                 left = (100 - c - index * e) + "%"; w = e + "%";
             }
-        } else if (index >= 11 && index <= 19) {  
+        } else if (index >= 11 && index <= 19) {
             sideClass = "left-col";
             left = "0%"; w = c + "%";
             const m = index - 10;
-            top  = (100 - c - m * e) + "%"; h = e + "%";
-        } else if (index >= 20 && index <= 30) {  
+            top = (100 - c - m * e) + "%"; h = e + "%";
+        } else if (index >= 20 && index <= 30) {
             sideClass = "top-row";
             top = "0%"; h = c + "%";
-            if (index === 20) {                    
+            if (index === 20) {
                 left = "0%"; w = c + "%";
                 sideClass += " corner";
-            } else if (index === 30) {             
+            } else if (index === 30) {
                 left = (100 - c) + "%"; w = c + "%";
                 sideClass += " corner";
             } else {
                 const m = index - 20;
                 left = (c + (m - 1) * e) + "%"; w = e + "%";
             }
-        } else {                                   
+        } else {
             sideClass = "right-col";
             left = (100 - c) + "%"; w = c + "%";
             const m = index - 30;
-            top  = (c + (m - 1) * e) + "%"; h = e + "%";
+            top = (c + (m - 1) * e) + "%"; h = e + "%";
         }
 
         el.classList.add(...sideClass.split(" "));
-        el.style.top    = top;
-        el.style.left   = left;
-        el.style.width  = w;
+        el.style.top = top;
+        el.style.left = left;
+        el.style.width = w;
         el.style.height = h;
-        el.innerHTML    = buildTileContent(tile);
-        el.onclick      = () => openPropertyInfo(index);
+        el.innerHTML = buildTileContent(tile);
+        el.onclick = () => openPropertyInfo(index);
 
         if (tile.mortgaged) el.classList.add("is-mortgaged");
 
@@ -176,17 +176,50 @@ function renderBoard() {
     renderTokens();
 }
 
+const despawningPlayers = []; // { id, color, position, startTime }
+
+function triggerDespawnAt(player, pos = null) {
+    // Avoid duplicates if already despawning
+    if (despawningPlayers.some(dp => dp.id === player.id)) return;
+
+    const despawnPos = pos !== null ? pos : player.position;
+    despawningPlayers.push({ ...player, position: despawnPos, startTime: Date.now() });
+    renderTokens();
+
+    // Remove after animation finishes (1s)
+    setTimeout(() => {
+        const idx = despawningPlayers.findIndex(dp => dp.id === player.id);
+        if (idx > -1) despawningPlayers.splice(idx, 1);
+        renderTokens();
+    }, 400);
+}
+
 function renderTokens() {
     document.querySelectorAll(".token").forEach(t => t.remove());
     document.querySelectorAll(".token-shadow").forEach(s => s.remove());
 
     const posGroups = {};
+
+    // 1. Group active players
     gameState.players.forEach(p => {
         if (p.bankrupt) return;
-        // Use visual position if animating, otherwise real position
-        const pos = animatingPlayers[p.id] !== undefined ? animatingPlayers[p.id] : p.position;
+        
+        // Use animation position if set, otherwise use current position
+        let pos = p.position;
+        if (animatingPlayers[p.id] === '__hidden__') return;
+        if (animatingPlayers[p.id] !== undefined) {
+            pos = animatingPlayers[p.id];
+        }
+
         if (!posGroups[pos]) posGroups[pos] = [];
-        posGroups[pos].push(p);
+        posGroups[pos].push({ ...p, status: 'active' });
+    });
+
+    // 2. Add despawning players to the groups
+    despawningPlayers.forEach(p => {
+        const pos = p.position;
+        if (!posGroups[pos]) posGroups[pos] = [];
+        posGroups[pos].push({ ...p, status: 'despawning' });
     });
 
     Object.keys(posGroups).forEach(pos => {
@@ -201,7 +234,7 @@ function renderTokens() {
             token.style.backgroundColor = p.color;
             token.id = `token-p-${p.id}`;
 
-            if (idx === 10) {
+            if (idx === 10 && p.status === 'active') {
                 const sub = p.inJail
                     ? tileEl.querySelector('.jail-prison')
                     : tileEl.querySelector('.jail-visiting');
@@ -212,14 +245,16 @@ function renderTokens() {
             const sx = (i - (group.length - 1) / 2) * 10;
             const sy = (i % 2 === 0 ? 4 : -4);
 
-            token.style.top       = top;
-            token.style.left      = left;
+            token.style.top = top;
+            token.style.left = left;
             token.style.transform = `translate(-50%, -50%) translate(${sx}px, ${sy}px)`;
-            
-            // Task: Cool Spawn Animation
-            if (p.justLanded) {
+
+            // Task: Cool Spawn/Despawn Animation
+            if (p.status === 'active' && p.justLanded) {
                 token.classList.add("spawning");
                 delete p.justLanded;
+            } else if (p.status === 'despawning') {
+                token.classList.add("despawning");
             }
 
             tileEl.appendChild(token);
@@ -227,7 +262,7 @@ function renderTokens() {
     });
 }
 
-// --- TASK 1: Movement Animation ---
+// --- Movement Animation: Tile Hop-Cursor Illusion ---
 
 async function animateMovement(playerId, startPos, endPos, isTeleport = false) {
     if (startPos === endPos) return;
@@ -235,164 +270,106 @@ async function animateMovement(playerId, startPos, endPos, isTeleport = false) {
     const player = gameState.players.find(p => p.id === playerId);
     if (!player) return;
 
-    if (isTeleport) {
+    try {
         isGlobalAnimating = true;
-        renderUIControls(); // Lock UI immediately
+        renderUIControls(); // Lock UI
 
-        player.justLanded = true;
-        renderTokens();
-        
-        // Unlock UI after the "pop" animation finishes (1.6s)
-        setTimeout(() => {
-            isGlobalAnimating = false;
-            renderUIControls();
-        }, 1600); 
-        return;
-    }
-
-    isGlobalAnimating = true;
-    renderUIControls(); // Hide buttons immediately
-
-    animatingPlayers[playerId] = startPos;
-    
-    // Calculate path
-    const path = [];
-    let current = startPos;
-    while (current !== endPos) {
-        current = (current + 1) % 40;
-        path.push(current);
-    }
-
-    // Highlight destination
-    const destTile = document.getElementById(`tile-${endPos}`);
-    if (destTile) destTile.classList.add("destination-aura");
-
-    // Task: Instant Path Highlight - Light up the entire path immediately
-    // Exclude the starting tile as requested
-    // Start delay ensures renderBoard() (called right after animateMovement)
-    // has finished replacing the DOM tiles before we apply the glow classes.
-    // Without this, t1 fires at 0ms and is wiped when renderBoard() recreates the tiles.
-    const pathGlowStartDelay = 60;
-    path.forEach((tid, i) => {
-        setTimeout(() => {
-            const t = document.getElementById(`tile-${tid}`);
-            if (t) t.classList.add("active-path");
-        }, pathGlowStartDelay + i * 20);
-    });
-
-    // Create moving token element inside the board so it moves with camera
-    const layer = getBoard();
-    const token = document.createElement("div");
-    token.className = "token hopping";
-    token.style.backgroundColor = player.color;
-    
-    const shadow = document.createElement("div");
-    shadow.className = "token-shadow";
-    
-    layer.appendChild(shadow);
-    layer.appendChild(token);
-
-    // Initial positioning
-    let currentPos = startPos;
-    
-    for (let i = 0; i < path.length; i++) {
-        const nextTileId = path[i];
-        const fromTile = document.getElementById(`tile-${currentPos}`);
-        const toTile = document.getElementById(`tile-${nextTileId}`);
-        
-        if (!toTile) { currentPos = nextTileId; continue; }
-
-        // If fromTile is missing (e.g. start tile was detached), use toTile as origin
-        const effectiveFrom = fromTile || toTile;
-
-        await performHop(token, shadow, effectiveFrom, toTile, nextTileId === endPos);
-        
-        // Task 2: Collision Trigger on landing
-        toTile.classList.add("tile-pulse");
-        setTimeout(() => toTile.classList.remove("tile-pulse"), 400);
-        
-        // Small delay between hops
-        await new Promise(r => setTimeout(r, 60));
-
-        currentPos = nextTileId;
-    }
-
-    // Landed!
-    delete animatingPlayers[playerId];
-    player.justLanded = true; // Trigger spawn anim in next renderTokens
-    
-    isGlobalAnimating = false;
-    token.remove();
-    shadow.remove();
-    
-    // Clear path glows after a short delay
-    const destTileId = endPos;
-    setTimeout(() => {
-        document.querySelectorAll(".active-path").forEach(t => t.classList.remove("active-path"));
-        const dTile = document.getElementById(`tile-${destTileId}`);
-        if (dTile) dTile.classList.remove("destination-aura");
-    }, 1000);
-
-    renderTokens();
-    renderUIControls(); // Show buttons again
-}
-
-function performHop(token, shadow, fromEl, toEl, isLast) {
-    return new Promise(resolve => {
-        const duration = 300; // Adjusted for a smoother feel (was 150ms)
-        const start = performance.now();
-        
-        // Use board-relative coordinates with "Below the Name" logic
-        const startTarget = getTileTargetPoint(parseInt(fromEl.id.split('-')[1]));
-        const endTarget = getTileTargetPoint(parseInt(toEl.id.split('-')[1]));
-
-        const startX = fromEl.offsetLeft + (fromEl.offsetWidth * (parseFloat(startTarget.left) / 100));
-        const startY = fromEl.offsetTop + (fromEl.offsetHeight * (parseFloat(startTarget.top) / 100));
-        const endX = toEl.offsetLeft + (toEl.offsetWidth * (parseFloat(endTarget.left) / 100));
-        const endY = toEl.offsetTop + (toEl.offsetHeight * (parseFloat(endTarget.top) / 100));
-
-        function step(now) {
-            const elapsed = now - start;
-            const progress = Math.min(elapsed / duration, 1);
+        if (isTeleport) {
+            // Use the same premium sequence for teleports
+            window.animatingPlayers[playerId] = '__hidden__';
+            triggerDespawnAt(player, startPos);
             
-            // Parabolic curve for "Height"
-            const jumpHeight = 40; 
-            const height = Math.sin(progress * Math.PI) * jumpHeight;
-            
-            // Lerp position
-            const currX = startX + (endX - startX) * progress;
-            const currY = startY + (endY - startY) * progress;
-            
-            // Apply Task 1 effects: Scale up + Y-offset
-            const scale = 1 + (Math.sin(progress * Math.PI) * 0.5);
-            token.style.left = `${currX}px`;
-            token.style.top = `${currY - height}px`;
-            token.style.transform = `translate(-50%, -50%) scale(${scale})`;
+            // Wait for despawn at start
+            await new Promise(r => setTimeout(r, 450));
 
-            // Task 4: Dynamic Shadow
-            shadow.style.left = `${currX}px`;
-            shadow.style.top = `${currY}px`;
-            const shadowScale = 1 - (Math.sin(progress * Math.PI) * 0.3);
-            const shadowBlur = 2 + (Math.sin(progress * Math.PI) * 8);
-            shadow.style.transform = `translate(-50%, -50%) scale(${shadowScale})`;
-            shadow.style.filter = `blur(${shadowBlur}px)`;
-            shadow.style.opacity = 0.4 + (Math.sin(progress * Math.PI) * 0.2);
-
-            if (progress < 1) {
-                requestAnimationFrame(step);
-            } else {
-                // Task 1: Squash and Stretch on landing
-                token.style.transform = ""; // Clear inline transform to let CSS animation run
-                token.classList.add("landing");
-                setTimeout(() => token.classList.remove("landing"), 300);
-                resolve();
-            }
+            // Move and respawn at destination
+            delete animatingPlayers[playerId];
+            player.justLanded = true;
+            renderTokens();
+            
+            // Allow time for spawn animation
+            await new Promise(r => setTimeout(r, 1000));
+            return;
         }
-        requestAnimationFrame(step);
-    });
+
+        // --- Build path ---
+        const path = [];
+        let current = startPos;
+        while (current !== endPos) {
+            current = (current + 1) % 40;
+            path.push(current);
+        }
+
+        // Per-hop dwell time — sped up by ~1.25x (0.75x duration)
+        const hopDwell = Math.max(180, Math.min(360, 2100 / path.length));
+
+        const destTileEl = document.getElementById(`tile-${endPos}`);
+
+        // 1. Trace the path glow quickly ahead of the hopping cursor
+        const pathDwell = hopDwell * 0.25; 
+        path.forEach((tid, i) => {
+            setTimeout(() => {
+                const t = document.getElementById(`tile-${tid}`);
+                if (t) {
+                    t.classList.add("active-path");
+                    if (tid === endPos) t.classList.add("destination-aura");
+                }
+            }, i * pathDwell);
+        });
+
+        // Wait for the path trace to complete before starting the hop
+        await new Promise(r => setTimeout(r, path.length * pathDwell + 50));
+
+        // 2. Hop the glow cursor tile by tile
+        window.animatingPlayers[playerId] = startPos;
+        renderTokens();
+
+        let prevTileEl = null;
+        for (let i = 0; i < path.length; i++) {
+            const tid = path[i];
+            const tileEl = document.getElementById(`tile-${tid}`);
+
+            if (prevTileEl) prevTileEl.classList.remove("hop-cursor");
+            if (tileEl) tileEl.classList.add("hop-cursor");
+
+            prevTileEl = tileEl;
+            await new Promise(r => setTimeout(r, hopDwell));
+        }
+
+        if (prevTileEl) prevTileEl.classList.remove("hop-cursor");
+
+        // --- Sequence: Despawn at Start → Respawn at Destination ---
+        window.animatingPlayers[playerId] = '__hidden__';
+        triggerDespawnAt(player, startPos);
+        
+        // Wait for the faster despawn (0.35s animation + small buffer)
+        await new Promise(r => setTimeout(r, 450));
+
+        // 2. Clear animation status and trigger respawn at DESTINATION
+        delete animatingPlayers[playerId];
+        player.justLanded = true;
+        
+        if (destTileEl) {
+            destTileEl.classList.remove("destination-aura");
+            destTileEl.classList.add("tile-pulse");
+            setTimeout(() => destTileEl.classList.remove("tile-pulse"), 400);
+        }
+
+        renderTokens();
+
+        // Fade out the path glows
+        setTimeout(() => {
+            document.querySelectorAll(".hop-cursor, .active-path, .destination-aura")
+                .forEach(t => t.classList.remove("hop-cursor", "active-path", "destination-aura"));
+        }, 900);
+
+    } finally {
+        isGlobalAnimating = false;
+        renderUIControls(); // Restore buttons
+    }
 }
 
-// --- TASK 3: Camera System ---
+
 
 
 function updatePlayersUI() {
@@ -419,9 +396,9 @@ function updatePlayersUI() {
     const me = gameState.players.find(p => p.uniqueId === window.myUniqueId);
     const dp = me || gameState.players[gameState.currentPlayerIndex];
     if (dp && !dp.bankrupt) {
-        const cnt  = document.getElementById("my-prop-count");
+        const cnt = document.getElementById("my-prop-count");
         const list = document.getElementById("my-properties-list");
-        if (cnt)  cnt.innerText = dp.properties.length;
+        if (cnt) cnt.innerText = dp.properties.length;
         if (list) {
             list.innerHTML = "";
             dp.properties.forEach(pid => {
@@ -438,12 +415,12 @@ function updatePlayersUI() {
 
 function renderUIControls() {
     if (document.getElementById("game-ui").classList.contains("hidden")) return;
-    
+
     const ui = gameState.ui;
-    const btnRoll     = document.getElementById("btn-roll");
-    const btnEnd      = document.getElementById("btn-end-turn");
-    const btnBuy      = document.getElementById("btn-buy");
-    const btnAuction  = document.getElementById("btn-auction");
+    const btnRoll = document.getElementById("btn-roll");
+    const btnEnd = document.getElementById("btn-end-turn");
+    const btnBuy = document.getElementById("btn-buy");
+    const btnAuction = document.getElementById("btn-auction");
     const btnJailFine = document.getElementById("btn-jail-fine");
 
     // Task: Hide controls during animation
@@ -452,7 +429,7 @@ function renderUIControls() {
         return;
     }
 
-    const cp   = gameState.players[gameState.currentPlayerIndex];
+    const cp = gameState.players[gameState.currentPlayerIndex];
     const isMe = cp && cp.uniqueId === myUniqueId;
     const dTurnStatus = document.getElementById("turn-status");
 
@@ -472,12 +449,12 @@ function renderUIControls() {
         // FIX 4: Negative Balance Blocks End Turn
         const isInDebt = cp.money < 0;
         const dDebtWarning = document.getElementById("debt-warning");
-        
-        btnRoll    .classList.toggle("hidden", !ui.roll);
+
+        btnRoll.classList.toggle("hidden", !ui.roll);
         btnJailFine.classList.toggle("hidden", !ui.jailFine);
-        btnBuy     .classList.toggle("hidden", !ui.buy);
-        btnAuction .classList.toggle("hidden", !ui.auction);
-        btnEnd     .classList.toggle("hidden", !ui.endTurn);
+        btnBuy.classList.toggle("hidden", !ui.buy);
+        btnAuction.classList.toggle("hidden", !ui.auction);
+        btnEnd.classList.toggle("hidden", !ui.endTurn);
 
         if (ui.endTurn) {
             if (isInDebt) {
@@ -504,9 +481,9 @@ function renderUIControls() {
                 btnRoll.classList.remove("roll-again-btn");
             }
         }
-        
-        if (ui.buy      && ui.buyText)     btnBuy.innerText = ui.buyText;
-        if (ui.endTurn  && ui.endTurnText) btnEnd.innerText = ui.endTurnText;
+
+        if (ui.buy && ui.buyText) btnBuy.innerText = ui.buyText;
+        if (ui.endTurn && ui.endTurnText) btnEnd.innerText = ui.endTurnText;
     } else {
         [btnRoll, btnEnd, btnBuy, btnAuction, btnJailFine].forEach(b => b.classList.add("hidden"));
     }
@@ -532,9 +509,9 @@ function renderStateLog() {
 function animateMoneyDelta(playerId, delta) {
     const card = document.querySelector(`.player-card[data-player-id="${playerId}"]`);
     if (!card) return;
-    const rect  = card.getBoundingClientRect();
+    const rect = card.getBoundingClientRect();
     const layer = document.getElementById("animation-layer");
-    const el    = document.createElement("div");
+    const el = document.createElement("div");
     el.className = `money-delta ${delta >= 0 ? "positive" : "negative"}`;
     el.innerText = `${delta >= 0 ? "+" : "-"}$${Math.abs(delta)}`;
     el.style.cssText = `position:fixed;left:${rect.right - 60}px;top:${rect.top + rect.height / 2}px`;
@@ -545,21 +522,22 @@ function animateMoneyDelta(playerId, delta) {
 function getTileTargetPoint(idx) {
     let top = 50, left = 50;
     const isCorner = (idx === 0 || idx === 10 || idx === 20 || idx === 30);
-    
+
     if (!isCorner) {
-        if (idx >= 0  && idx <= 10) top  = 65; // Bottom row: move down
-        if (idx >= 20 && idx <= 30) top  = 35; // Top row: move up
+        if (idx >= 0 && idx <= 10) top = 65; // Bottom row: move down
+        if (idx >= 20 && idx <= 30) top = 35; // Top row: move up
         if (idx >= 11 && idx <= 19) left = 35; // Left col: move left (outer)
         if (idx >= 31 && idx <= 39) left = 65; // Right col: move right (outer)
     }
-    
+
     return { top: top + "%", left: left + "%" };
 }
 
-window.renderBoard   = renderBoard;
-window.renderTokens  = renderTokens;
-window.updatePlayersUI  = updatePlayersUI;
+window.renderBoard = renderBoard;
+window.renderTokens = renderTokens;
+window.updatePlayersUI = updatePlayersUI;
 window.renderUIControls = renderUIControls;
-window.renderStateLog   = renderStateLog;
+window.renderStateLog = renderStateLog;
 window.animateMoneyDelta = animateMoneyDelta;
 window.animateMovement = animateMovement;
+window.triggerDespawn = triggerDespawn;

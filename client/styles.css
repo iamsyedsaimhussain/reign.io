@@ -173,7 +173,7 @@ body {
 
 .copy-icon:hover {
     color: #fff;
-    background: rgba(255,255,255,0.1);
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .toggles {
@@ -359,6 +359,7 @@ body {
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
@@ -369,7 +370,7 @@ body {
     margin-bottom: 20px;
 }
 
-#join-code-input, 
+#join-code-input,
 #player-name-input {
     width: 100%;
     background: rgba(0, 0, 0, 0.25);
@@ -405,8 +406,8 @@ body {
 
 /* Autofill Overrides to prevent 'white bar' on suggestions */
 input:-webkit-autofill,
-input:-webkit-autofill:hover, 
-input:-webkit-autofill:focus, 
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
 input:-webkit-autofill:active {
     -webkit-text-fill-color: white !important;
     -webkit-box-shadow: 0 0 0 1000px #1a1a1a inset !important;
@@ -475,20 +476,24 @@ input:-webkit-autofill:active {
     display: flex;
     flex-direction: column;
     gap: 15px;
-    padding-right: 5px; /* space for scrollbar */
+    padding-right: 5px;
+    /* space for scrollbar */
 }
 
 /* Minimalist Scrollbar for Sidebar Options */
 .sidebar-options-scroll::-webkit-scrollbar {
     width: 4px;
 }
+
 .sidebar-options-scroll::-webkit-scrollbar-track {
     background: transparent;
 }
+
 .sidebar-options-scroll::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.1);
     border-radius: 4px;
 }
+
 .sidebar-options-scroll::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.2);
 }
@@ -505,7 +510,8 @@ input:-webkit-autofill:active {
 /* Chat */
 .chat-container {
     flex: 1 1 0;
-    display: flex !important; /* FIX 2: Permanent Chat Shield */
+    display: flex !important;
+    /* FIX 2: Permanent Chat Shield */
     flex-direction: column;
     background: rgba(0, 0, 0, 0.2);
     border-radius: 8px;
@@ -551,8 +557,15 @@ input:-webkit-autofill:active {
 }
 
 @keyframes chatPop {
-    from { opacity: 0; transform: translateY(4px); }
-    to   { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 .chat-avatar {
@@ -572,14 +585,14 @@ input:-webkit-autofill:active {
 .chat-name {
     font-size: 0.7rem;
     font-weight: 700;
-    color: rgba(255,255,255,0.6);
+    color: rgba(255, 255, 255, 0.6);
     text-transform: uppercase;
     letter-spacing: 0.5px;
 }
 
 .chat-text {
     font-size: 0.82rem;
-    color: rgba(255,255,255,0.9);
+    color: rgba(255, 255, 255, 0.9);
     line-height: 1.3;
 }
 
@@ -882,9 +895,17 @@ input:-webkit-autofill:active {
     text-align: center;
     pointer-events: none;
 }
+
 @keyframes pot-glow {
-    0%, 100% { box-shadow: 0 0 4px rgba(251, 191, 36, 0.3); }
-    50% { box-shadow: 0 0 10px rgba(251, 191, 36, 0.7); }
+
+    0%,
+    100% {
+        box-shadow: 0 0 4px rgba(251, 191, 36, 0.3);
+    }
+
+    50% {
+        box-shadow: 0 0 10px rgba(251, 191, 36, 0.7);
+    }
 }
 
 /* Color Bar (Island) */
@@ -1279,7 +1300,8 @@ input:-webkit-autofill:active {
 /* Animation class if needed, but we'll use dynamic JS transforms */
 /* Base animation handled in JS for random axes */
 .dice.rolling {
-    transition: none; /* Signal that we are in a dynamic state */
+    transition: none;
+    /* Signal that we are in a dynamic state */
 }
 
 .controls {
@@ -1384,7 +1406,7 @@ input:-webkit-autofill:active {
     border: 2px solid rgba(255, 255, 255, 0.8);
     z-index: 100;
     transition: transform 0.1s ease-out;
-    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
 }
 
 /* 2D Height Shadow */
@@ -1408,17 +1430,19 @@ input:-webkit-autofill:active {
 /* Task 2: VFX */
 .tile.active-path {
     /* 2.5D Purplish Glow */
-    box-shadow: 
+    box-shadow:
         0 0 20px rgba(167, 139, 250, 0.6),
         0 0 40px rgba(139, 92, 246, 0.4),
         inset 0 0 15px rgba(167, 139, 250, 0.8),
-        inset 0 2px 5px rgba(255, 255, 255, 0.3); /* Top edge highlight */
+        inset 0 2px 5px rgba(255, 255, 255, 0.3);
+    /* Top edge highlight */
     filter: brightness(1.3);
     z-index: 100 !important;
     border: 1.5px solid rgba(167, 139, 250, 0.8) !important;
     background: linear-gradient(135deg, rgba(88, 28, 135, 0.2), rgba(124, 58, 237, 0.1)) !important;
     position: absolute;
-    transition: none !important; /* Force instant pop to prevent visual skips */
+    transition: none !important;
+    /* Force instant pop to prevent visual skips */
 }
 
 /* Suble Light Rays from beneath */
@@ -1429,20 +1453,18 @@ input:-webkit-autofill:active {
     left: -50%;
     right: -50%;
     bottom: -50%;
-    background: conic-gradient(
-        from 0deg,
-        transparent 0deg,
-        rgba(167, 139, 250, 0.15) 20deg,
-        transparent 40deg,
-        rgba(139, 92, 246, 0.1) 80deg,
-        transparent 120deg,
-        rgba(167, 139, 250, 0.15) 160deg,
-        transparent 200deg,
-        rgba(139, 92, 246, 0.1) 240deg,
-        transparent 280deg,
-        rgba(167, 139, 250, 0.15) 320deg,
-        transparent 360deg
-    );
+    background: conic-gradient(from 0deg,
+            transparent 0deg,
+            rgba(167, 139, 250, 0.15) 20deg,
+            transparent 40deg,
+            rgba(139, 92, 246, 0.1) 80deg,
+            transparent 120deg,
+            rgba(167, 139, 250, 0.15) 160deg,
+            transparent 200deg,
+            rgba(139, 92, 246, 0.1) 240deg,
+            transparent 280deg,
+            rgba(167, 139, 250, 0.15) 320deg,
+            transparent 360deg);
     filter: blur(25px);
     animation: rotate-rays 8s linear infinite;
     pointer-events: none;
@@ -1451,13 +1473,18 @@ input:-webkit-autofill:active {
 }
 
 @keyframes rotate-rays {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+    from {
+        transform: rotate(0deg);
+    }
+
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .tile.destination-aura {
     animation: destination-pulse 1.2s infinite ease-in-out;
-    box-shadow: 
+    box-shadow:
         0 0 30px rgba(139, 92, 246, 0.8),
         0 0 60px rgba(124, 58, 237, 0.5),
         inset 0 0 20px rgba(167, 139, 250, 1);
@@ -1466,9 +1493,20 @@ input:-webkit-autofill:active {
 }
 
 @keyframes destination-pulse {
-    0% { transform: scale(1); filter: brightness(1.2) drop-shadow(0 0 10px #a78bfa); }
-    50% { transform: scale(1.03); filter: brightness(1.6) drop-shadow(0 0 25px #a78bfa); }
-    100% { transform: scale(1); filter: brightness(1.2) drop-shadow(0 0 10px #a78bfa); }
+    0% {
+        transform: scale(1);
+        filter: brightness(1.2) drop-shadow(0 0 10px #a78bfa);
+    }
+
+    50% {
+        transform: scale(1.03);
+        filter: brightness(1.6) drop-shadow(0 0 25px #a78bfa);
+    }
+
+    100% {
+        transform: scale(1);
+        filter: brightness(1.2) drop-shadow(0 0 10px #a78bfa);
+    }
 }
 
 .tile.tile-pulse {
@@ -1477,30 +1515,127 @@ input:-webkit-autofill:active {
 }
 
 @keyframes pulse-wave {
-    0% { filter: brightness(1); transform: scale(1); }
-    30% { filter: brightness(2); transform: scale(1.02); }
-    100% { filter: brightness(1); transform: scale(1); }
+    0% {
+        filter: brightness(1);
+        transform: scale(1);
+    }
+
+    30% {
+        filter: brightness(2);
+        transform: scale(1.02);
+    }
+
+    100% {
+        filter: brightness(1);
+        transform: scale(1);
+    }
+}
+
+/* Hopping Glow Cursor — single tile "jumps" to create hop illusion */
+@keyframes hop-pop {
+    0%   { transform: scale(0.98); filter: brightness(1.1) drop-shadow(0 0 4px #a78bfa); }
+    40%  { transform: scale(1.03); filter: brightness(1.4) drop-shadow(0 0 12px #c4b5fd); }
+    100% { transform: scale(1);    filter: brightness(1.1) drop-shadow(0 0 6px #a78bfa); }
+}
+
+.tile.hop-cursor {
+    animation: hop-pop 0.3s ease-out forwards;
+    /* Subtler layer on top of active-path */
+    box-shadow:
+        0 0 10px rgba(167, 139, 250, 0.6),
+        0 0 20px rgba(139, 92, 246, 0.4),
+        inset 0 0 8px rgba(167, 139, 250, 0.6),
+        0 0 20px rgba(167, 139, 250, 0.4), /* from active-path */
+        inset 0 2px 3px rgba(255, 255, 255, 0.15) !important;
+    z-index: 102 !important;
+    border: 1.5px solid #c4b5fd !important;
+    background: linear-gradient(135deg, rgba(109, 40, 217, 0.25), rgba(139, 92, 246, 0.15)) !important;
+    transition: none !important;
+}
+
+/* Dim trail left behind after hop cursor passes */
+.tile.hop-trail {
+    box-shadow:
+        0 0 8px rgba(139, 92, 246, 0.3),
+        inset 0 0 6px rgba(167, 139, 250, 0.3);
+    border: 1px solid rgba(167, 139, 250, 0.35) !important;
+    transition: none !important;
 }
 
 /* squash and stretch */
 @keyframes token-land {
-    0% { transform: translate(-50%, -50%) scale(1.2, 0.8); }
-    50% { transform: translate(-50%, -50%) scale(0.9, 1.1); }
-    100% { transform: translate(-50%, -50%) scale(1, 1); }
+    0% {
+        transform: translate(-50%, -50%) scale(1.2, 0.8);
+    }
+
+    50% {
+        transform: translate(-50%, -50%) scale(0.9, 1.1);
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(1, 1);
+    }
 }
 
 .token.landing {
     animation: token-land 0.15s ease-out;
 }
 
+@keyframes shake-error {
+    0% { transform: translateX(0); }
+    20% { transform: translateX(-5px); }
+    40% { transform: translateX(5px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
+    100% { transform: translateX(0); }
+}
+
+.shake-error {
+    animation: shake-error 0.4s ease-in-out !important;
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.5) !important;
+    border-color: #f87171 !important;
+}
+
 @keyframes token-spawn {
-    0% { transform: translate(-50%, -50%) scale(0); opacity: 0; }
-    60% { transform: translate(-50%, -50%) scale(1.4); opacity: 1; }
-    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    0% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+    }
+
+    60% {
+        transform: translate(-50%, -50%) scale(1.4);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
 }
 
 .token.spawning {
-    animation: token-spawn 1.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    animation: token-spawn 1.0s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes token-despawn {
+    0% {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
+
+    40% {
+        transform: translate(-50%, -50%) scale(1.4);
+        opacity: 1;
+    }
+
+    100% {
+        transform: translate(-50%, -50%) scale(0);
+        opacity: 0;
+    }
+}
+
+.token.despawning {
+    animation: token-despawn 0.35s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards;
 }
 
 /* Panels */
@@ -1859,7 +1994,8 @@ input:-webkit-autofill:active {
     flex: 1;
 }
 
-.pending-trade-item, .trade-item-btn {
+.pending-trade-item,
+.trade-item-btn {
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     padding: 12px 15px;
@@ -1877,7 +2013,8 @@ input:-webkit-autofill:active {
     text-align: left;
 }
 
-.pending-trade-item:hover, .trade-item-btn:hover {
+.pending-trade-item:hover,
+.trade-item-btn:hover {
     border-color: var(--accent);
     background: rgba(139, 92, 246, 0.15);
     transform: translateX(4px);
@@ -2300,14 +2437,14 @@ input:-webkit-autofill:active {
     height: 44px;
     border-radius: 50%;
     cursor: pointer;
-    border: 3px solid rgba(255,255,255,0.05);
+    border: 3px solid rgba(255, 255, 255, 0.05);
     transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
 }
 
 .color-choice:hover {
     transform: scale(1.1);
-    border-color: rgba(255,255,255,0.3);
+    border-color: rgba(255, 255, 255, 0.3);
 }
 
 .color-choice.selected {
@@ -2340,13 +2477,15 @@ input:-webkit-autofill:active {
         padding: 10px;
         display: flex;
     }
-    
+
     .sidebar.left-sidebar {
-        display: contents; /* Allows children to be re-ordered independently in game-ui */
+        display: contents;
+        /* Allows children to be re-ordered independently in game-ui */
     }
 
     .game-header {
-        order: -10; /* Force to absolute top */
+        order: -10;
+        /* Force to absolute top */
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
@@ -2373,18 +2512,19 @@ input:-webkit-autofill:active {
     .game-header #btn-open-rules {
         margin-bottom: 0 !important;
     }
-    
-    .sidebar, .right-sidebar {
+
+    .sidebar,
+    .right-sidebar {
         width: 100%;
         max-height: none;
     }
-    
+
     .center-panel {
-        order: -5; 
+        order: -5;
         margin-top: 10px;
         margin-bottom: 20px;
     }
-    
+
     .chat-container {
         min-height: 250px;
         order: 10;
@@ -2409,15 +2549,18 @@ input:-webkit-autofill:active {
         letter-spacing: -0.1px;
         line-height: 1.1;
     }
+
     .tile .price {
         font-size: 5.5px;
         padding: 0 1px;
     }
+
     .tile-color-bar {
         border-radius: 1px;
         margin-bottom: 2px;
         height: 18%;
     }
+
     .mortgaged-label {
         font-size: 6.5px;
         padding: 1px 3px;
@@ -2442,15 +2585,18 @@ input:-webkit-autofill:active {
         top: 56%;
         gap: 5px;
     }
+
     .controls button {
         padding: 5px 12px;
         font-size: 0.8rem;
-        min-width: 80px; 
+        min-width: 80px;
     }
+
     .turn-status {
         font-size: 0.65rem;
         bottom: 6px;
     }
+
     .activity-log {
         font-size: 0.65rem;
         top: 88%;
@@ -2460,6 +2606,7 @@ input:-webkit-autofill:active {
     .player-row {
         padding: 10px 15px;
     }
+
     .player-row .p-name {
         font-size: 0.95rem;
     }
@@ -2468,50 +2615,62 @@ input:-webkit-autofill:active {
     #start-screen h1 {
         font-size: 3rem;
     }
+
     .start-container {
         width: 92%;
         padding: 30px 20px;
     }
-    .menu-view input, .menu-view button {
+
+    .menu-view input,
+    .menu-view button {
         font-size: 0.95rem;
         padding: 12px;
     }
 
     /* Modals should fill the screen width and be height-safe */
-    .auction-modal, .trade-modal {
+    .auction-modal,
+    .trade-modal {
         width: 96vw;
         max-height: 95vh;
         overflow-y: auto;
         padding: 15px;
         border-radius: 12px;
     }
+
     .auction-title {
         font-size: 1.2rem;
         margin-bottom: 10px;
     }
+
     .auction-split {
         flex-direction: column;
         gap: 15px;
     }
+
     .auction-prop-card {
         width: 100%;
         border-radius: 8px;
     }
+
     .prop-card-banner {
         height: 40px;
     }
+
     .prop-card-name {
         font-size: 1rem;
         margin-bottom: 8px;
     }
+
     .prop-card-rent-table {
         gap: 5px;
         margin-bottom: 10px;
         font-size: 0.8rem;
     }
+
     .current-bid-display #auction-bid {
         font-size: 1.8rem;
     }
+
     .auction-quick-bids {
         gap: 6px;
     }
@@ -2551,8 +2710,15 @@ input:-webkit-autofill:active {
 }
 
 @keyframes viewer-pulse {
-    from { opacity: 0.4; transform: scale(0.8); }
-    to { opacity: 1; transform: scale(1.1); }
+    from {
+        opacity: 0.4;
+        transform: scale(0.8);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1.1);
+    }
 }
 
 .trade-invalid-notice {
@@ -2566,17 +2732,33 @@ input:-webkit-autofill:active {
     border-radius: 8px;
     z-index: 10000;
     font-weight: 700;
-    box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     pointer-events: none;
     animation: fadeInOut 3s forwards;
 }
 
 @keyframes fadeInOut {
-    0% { opacity: 0; transform: translate(-50%, -40%); }
-    15% { opacity: 1; transform: translate(-50%, -50%); }
-    85% { opacity: 1; transform: translate(-50%, -50%); }
-    100% { opacity: 0; transform: translate(-50%, -60%); }
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -40%);
+    }
+
+    15% {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+
+    85% {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -60%);
+    }
 }
+
 /* FIX 4: Debt Warning */
 .debt-warning {
     color: #ef4444;
@@ -2590,9 +2772,19 @@ input:-webkit-autofill:active {
     border: 1px solid rgba(239, 68, 68, 0.3);
     animation: debt-pulse 1.5s infinite ease-in-out;
 }
+
 @keyframes debt-pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.7; transform: scale(0.98); }
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.7;
+        transform: scale(0.98);
+    }
 }
 
 /* FIX 9: Premium Victory Modal */
@@ -2611,8 +2803,15 @@ input:-webkit-autofill:active {
 }
 
 @keyframes victory-fade-in {
-    from { opacity: 0; backdrop-filter: blur(0px); }
-    to { opacity: 1; backdrop-filter: blur(20px); }
+    from {
+        opacity: 0;
+        backdrop-filter: blur(0px);
+    }
+
+    to {
+        opacity: 1;
+        backdrop-filter: blur(20px);
+    }
 }
 
 .victory-container {
@@ -2631,8 +2830,15 @@ input:-webkit-autofill:active {
 }
 
 @keyframes victory-scale-up {
-    from { transform: scale(0.5); opacity: 0; }
-    to { transform: scale(1); opacity: 1; }
+    from {
+        transform: scale(0.5);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
 }
 
 /* FIX 9: SVG Crown (no emoji) */
@@ -2650,8 +2856,15 @@ input:-webkit-autofill:active {
 }
 
 @keyframes crown-float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-12px); }
+
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-12px);
+    }
 }
 
 .victory-container h1 {
@@ -2661,7 +2874,7 @@ input:-webkit-autofill:active {
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    text-shadow: 0 10px 20px rgba(0, 0, 0, 0.5);
     margin-bottom: 15px;
 }
 
@@ -2752,8 +2965,15 @@ input:-webkit-autofill:active {
 }
 
 @keyframes cardPopIn {
-    from { transform: translate(-50%, -40%) scale(0.9); opacity: 0; }
-    to { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+    from {
+        transform: translate(-50%, -40%) scale(0.9);
+        opacity: 0;
+    }
+
+    to {
+        transform: translate(-50%, -50%) scale(1);
+        opacity: 1;
+    }
 }
 
 .card-icon-container {
@@ -2772,7 +2992,7 @@ input:-webkit-autofill:active {
 }
 
 .envelope-icon svg {
-    filter: drop-shadow(0 4px 8px rgba(0,0,0,0.2));
+    filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
 }
 
 .card-message-text {

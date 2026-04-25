@@ -20,15 +20,16 @@ const chanceDeck = [
 ];
 
 const communityDeck = [
+    { text: "Hospital Fees: Pay $100 (Added to Tax Heaven)", type: "tax_pot", amount: 100 },
     { text: "Bank Dividend: Bank pays you dividend of $50", type: "money", amount: 50 },
     { text: "Loan Maturity: Your building loan matures. Collect $150", type: "money", amount: 150 },
     { text: "Competition Winner: You have won a crossword competition. Collect $100", type: "money", amount: 100 },
     { text: "Bank Error: Bank error in your favor. Collect $200", type: "money", amount: 200 },
     { text: "Stock Sale: From sale of stock you get $50", type: "money", amount: 50 },
-    { text: "Holiday Fund: Holiday fund matures. Receive $100", type: "money", amount: 100 },
-    { text: "Tax Refund: Income tax refund. Collect $50", type: "money", amount: 50 },
+    { text: "It's your birthday: Collect $10 from every player", type: "collect_players", amount: 10 },
+    { text: "Income Tax Refund: Income tax refund. Collect $50", type: "money", amount: 50 },
     { text: "Life Insurance: Life insurance matures. Collect $100", type: "money", amount: 100 },
-    { text: "Loan Maturity: Your building loan matures. Collect $150", type: "money", amount: 150 }
+    { text: "School Fees: Pay $50 (Added to Tax Heaven)", type: "tax_pot", amount: 50 }
 ];
 
 class GameEngine {
@@ -118,6 +119,7 @@ class GameEngine {
             case "ROLL":
                 return this.handleRoll(state);
             case "END_TURN":
+                if (state.activeCard) return this.handleResolveCard(state, uniqueId);
                 return this.handleEndTurn(state);
             case "BUY":
                 return this.handleBuy(state);
@@ -543,27 +545,18 @@ class GameEngine {
 
         if (card.type === "money") {
             p.money += card.amount;
-        } else if (card.type === "move") {
-            // GO check: if target position is behind current, we passed START
-            if (card.position < p.position && card.position !== 0) {
-                p.money += 200;
-                state.log.push({ type: "sys", text: `${p.name} passed START and collected $200` });
-            } else if (card.position === 0) {
-                p.money += 300;
-                state.log.push({ type: "sys", text: `<span style="color:#fbbf24; font-weight:bold;">Landed on START! Collect $300</span>` });
-            }
-            p.position = card.position;
-            this.resolveTile(state, p, state.boardData[p.position]);
-        } else if (card.type === "jail") {
-            this.goToJail(state, p);
-        } else if (card.type === "move_relative") {
-             p.position = (p.position + card.amount + state.boardData.length) % state.boardData.length;
-             this.resolveTile(state, p, state.boardData[p.position]);
         } else if (card.type === "pay_players") {
             state.players.forEach(other => {
                 if (other.id !== p.id && !other.bankrupt) {
                     p.money -= card.amount;
                     other.money += card.amount;
+                }
+            });
+        } else if (card.type === "collect_players") {
+            state.players.forEach(other => {
+                if (other.id !== p.id && !other.bankrupt) {
+                    p.money += card.amount;
+                    other.money -= card.amount;
                 }
             });
         } else if (card.type === "tax_pot") {
@@ -585,8 +578,29 @@ class GameEngine {
             p.money -= total;
             state.log.push({ type: "sys", text: `${p.name} paid $${total} for property renovations.` });
         }
-
+        
+        // Clean up active card state
         state.activeCard = null;
+
+        // Perform deferred actions (after clearing activeCard to avoid recursion issues)
+        if (card.type === "move") {
+            // GO check: if target position is behind current, we passed START
+            if (card.position < p.position && card.position !== 0) {
+                p.money += 200;
+                state.log.push({ type: "sys", text: `${p.name} passed START and collected $200` });
+            } else if (card.position === 0) {
+                p.money += 300;
+                state.log.push({ type: "sys", text: `<span style="color:#fbbf24; font-weight:bold;">Landed on START! Collect $300</span>` });
+            }
+            p.position = card.position;
+            this.resolveTile(state, p, state.boardData[p.position]);
+        } else if (card.type === "jail") {
+            this.goToJail(state, p);
+        } else if (card.type === "move_relative") {
+             p.position = (p.position + card.amount + state.boardData.length) % state.boardData.length;
+             this.resolveTile(state, p, state.boardData[p.position]);
+        }
+
         if (state.canRollAgain) {
             this.updateUI(state, true, false, false, false, { rollText: "Roll Again" });
         } else {

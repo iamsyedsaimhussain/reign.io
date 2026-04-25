@@ -9,7 +9,8 @@ class AuctionEngine {
             currentBid: 0, 
             highestBidderId: null,
             timeLeft: 10,
-            syncId: Date.now()
+            syncId: Date.now(),
+            startTime: Date.now()
         };
 
         state.log.push({ type: "sys", text: `Real-time Auction started for ${tile.name}! Anyone can bid.` });
@@ -53,7 +54,11 @@ class AuctionEngine {
         // Push timer back to 10 seconds on every bid
         auc.timeLeft = 10;
 
-        state.log.push({ type: "bid", text: `<span style="color:#f59e0b; font-weight:800;">${bidder.name}</span> bid <span style="color:#fff; font-weight:800;">$${bidValue}</span>` });
+        state.log.push({ 
+            type: "bid", 
+            text: `<span style="color:#f59e0b; font-weight:800;">${bidder.name}</span> bid <span style="color:#fff; font-weight:800;">$${bidValue}</span>`,
+            timestamp: Date.now()
+        });
         auc.syncId = Date.now();
         
         return true;

@@ -2,7 +2,17 @@
 function setupUIListeners() {
     document.getElementById("btn-roll").onclick = () => sendAction("ROLL");
     document.getElementById("btn-end-turn").onclick = () => sendAction("END_TURN");
-    document.getElementById("btn-buy").onclick = () => sendAction("BUY");
+    document.getElementById("btn-buy").onclick = () => {
+        const cp = gameState.players[gameState.currentPlayerIndex];
+        const tile = gameState.boardData[cp.position];
+        if (cp && tile && cp.money < tile.price) {
+            const btn = document.getElementById("btn-buy");
+            btn.classList.add("shake-error");
+            setTimeout(() => btn.classList.remove("shake-error"), 400);
+            return;
+        }
+        sendAction("BUY");
+    };
     document.getElementById("btn-auction").onclick = () => sendAction("AUCTION");
     document.getElementById("btn-jail-fine").onclick = () => sendAction("JAIL_FINE");
     
