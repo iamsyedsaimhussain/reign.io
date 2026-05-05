@@ -439,10 +439,27 @@ function updatePlayersUI() {
         div.className = `player-card ${gameState.currentPlayerIndex === p.id ? "active" : ""}`;
         if (p.isDisconnected) { div.style.opacity = "0.4"; div.style.border = "1px dashed #ef4444"; }
         div.dataset.playerId = p.id;
+        let kickHtml = '';
+        if (p.uniqueId !== window.myUniqueId) {
+            const votes = gameState.kickVotes && gameState.kickVotes[p.uniqueId] ? gameState.kickVotes[p.uniqueId].length : 0;
+            const activeCount = gameState.players.filter(pl => !pl.bankrupt && !pl.isDisconnected).length;
+            const requiredVotes = Math.floor(activeCount / 2) + 1;
+            const hasVoted = gameState.kickVotes && gameState.kickVotes[p.uniqueId] && gameState.kickVotes[p.uniqueId].includes(window.myUniqueId);
+            
+            kickHtml = `
+                <button class="sm-btn" style="margin-top:4px; font-size:0.7rem; padding:2px 6px; ${hasVoted ? 'background:#ef4444' : 'background:#64748b'}" onclick="event.stopPropagation(); window.sendAction('VOTE_KICK', { targetId: '${p.uniqueId}' })">
+                    ${hasVoted ? 'Voted Kick' : 'Vote Kick'} (${votes}/${requiredVotes})
+                </button>
+            `;
+        }
+
         div.innerHTML = `
-            <div class="player-info">
-                <div class="player-token" style="background:${p.color}"></div>
-                <span>${p.name}${p.isDisconnected ? ' <span style="font-size:.7rem;color:#ef4444">(AWAY)</span>' : ''}</span>
+            <div class="player-info" style="align-items:flex-start;">
+                <div class="player-token" style="background:${p.color}; margin-top:4px;"></div>
+                <div style="display:flex; flex-direction:column; align-items:flex-start;">
+                    <span>${p.name}${p.isDisconnected ? ' <span style="font-size:.7rem;color:#ef4444">(AWAY)</span>' : ''}</span>
+                    ${kickHtml}
+                </div>
             </div>
             <div class="player-money">$${p.money}</div>
         `;

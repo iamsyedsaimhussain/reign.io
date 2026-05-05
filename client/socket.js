@@ -74,8 +74,10 @@ if (socket) {
             myProfile.name = me.name;
             myProfile.color = me.color;
         }
-        
-        updateClientUI({}); 
+
+        // Only call lightweight lobby render — never the full game pipeline
+        if (typeof updateLobbyUI === 'function') updateLobbyUI();
+        if (typeof updateColorPalette === 'function') updateColorPalette();
     });
 
     socket.on('game_start_confirmed', (data) => {
@@ -130,6 +132,18 @@ if (socket) {
         });
         if (gameState.displayLog.length > 100) gameState.displayLog.shift();
         renderStateLog();
+    });
+
+    // Lightweight fast-path for AWAY badge toggling (avoids full state_update pipeline)
+    socket.on('player_away', (data) => {
+        const { uniqueId, isAway } = data;
+        if (!gameState.players) return;
+        const p = gameState.players.find(pl => pl.uniqueId === uniqueId);
+        if (p) {
+            p.isDisconnected = isAway;
+            // Only re-render the lightweight players sidebar, not the whole board
+            if (typeof updatePlayersUI === 'function') updatePlayersUI();
+        }
     });
 
     socket.on('game_reset', () => {

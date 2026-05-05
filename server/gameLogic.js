@@ -86,6 +86,7 @@ class GameEngine {
             auction: null,
             trade: null,
             pendingTrades: [],
+            kickVotes: {},
             activeCard: null,
             log: [],
             lastRollValue: 0,
@@ -110,8 +111,8 @@ class GameEngine {
             return false;
         }
         
-        // Validation: Is it this player's turn? (Bypass for auctions, trading, and bankruptcy)
-        if (p.uniqueId !== uniqueId && action !== "BID" && action !== "BANKRUPTCY" && !action.startsWith("TRADE_")) {
+        // Validation: Is it this player's turn? (Bypass for auctions, trading, bankruptcy, and vote kick)
+        if (p.uniqueId !== uniqueId && action !== "BID" && action !== "BANKRUPTCY" && action !== "VOTE_KICK" && !action.startsWith("TRADE_")) {
             return false; 
         }
 
@@ -155,6 +156,8 @@ class GameEngine {
                 return this.handleSellBuilding(state, uniqueId, payload);
             case "BANKRUPTCY":
                 return this.handleBankruptcy(state, uniqueId);
+            case "VOTE_KICK":
+                return this.handleVoteKick(state, uniqueId, payload);
             case "DRAW_CARD":
                 return this.handleDrawCard(state, uniqueId, payload);
             case "RESOLVE_CARD":
@@ -509,6 +512,38 @@ class GameEngine {
                 this.handleEndTurn(state, true);
             }
         }
+        return true;
+    }
+
+    static handleVoteKick(state, uniqueId, payload) {
+        const targetId = payload.targetId;
+        if (!state.kickVotes) state.kickVotes = {};
+        if (!state.kickVotes[targetId]) state.kickVotes[targetId] = [];
+
+        const targetPlayer = state.players.find(p => p.uniqueId === targetId);
+        const voter = state.players.find(p => p.uniqueId === uniqueId);
+        
+        if (!targetPlayer || targetPlayer.bankrupt || targetPlayer.uniqueId === uniqueId || !voter || voter.bankrupt) return false;
+
+        const votes = state.kickVotes[targetId];
+        if (!votes.includes(uniqueId)) {
+            votes.push(uniqueId);
+            state.log.push({ type: "sys", text: `${voter.name} voted to kick ${targetPlayer.name}` });
+        } else {
+            // Toggle vote off
+            state.kickVotes[targetId] = votes.filter(id => id !== uniqueId);
+            return true;
+        }
+
+        const activePlayers = state.players.filter(p => !p.bankrupt && !p.isDisconnected);
+        const requiredVotes = Math.floor(activePlayers.length / 2) + 1;
+
+        if (votes.length >= requiredVotes) {
+            state.log.push({ type: "sys", text: `<span style="color:#ef4444; font-weight:bold;">Majority vote reached! ${targetPlayer.name} has been kicked.</span>` });
+            this.handleBankruptcy(state, targetPlayer.uniqueId);
+            delete state.kickVotes[targetId];
+        }
+        
         return true;
     }
 

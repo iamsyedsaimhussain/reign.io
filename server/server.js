@@ -95,7 +95,8 @@ io.on('connection', (socket) => {
                     socket.emit('room_joined', { roomCode, isHost: wasHost, gameStarted: true });
                     socket.emit('game_start_confirmed', { state: room.gameState });
                     
-                    // BROADCAST to clear (AWAY) tag on all clients
+                    // Fast AWAY-clear event for all clients, then full state
+                    io.to(roomCode).emit('player_away', { uniqueId, isAway: false, name: existingPlayer.name });
                     io.to(roomCode).emit('state_update', room.gameState);
                     return;
                 }
@@ -182,6 +183,24 @@ io.on('connection', (socket) => {
                 }
             }
 
+            io.to(roomCode).emit('lobby_update', {
+                players: Object.values(room.playerDetails),
+                maxPlayers: room.maxPlayers
+            });
+        }
+    });
+
+    socket.on('leave_room', (data) => {
+        const { roomCode, uniqueId } = data;
+        const room = rooms[roomCode];
+        if (room && !room.gameState) {
+            if (room.playerDetails[socket.id]) {
+                delete room.playerDetails[socket.id];
+            }
+            room.players = room.players.filter(id => id !== socket.id);
+            socket.leave(roomCode);
+            socket.reignRoom = null;
+            socket.reignUid = null;
             io.to(roomCode).emit('lobby_update', {
                 players: Object.values(room.playerDetails),
                 maxPlayers: room.maxPlayers
@@ -285,17 +304,27 @@ io.on('connection', (socket) => {
         if (!room) return;
 
         const uniqueId = socket.reignUid;
+
         if (room.gameState) {
+            // === GAME IN PROGRESS: Mark as AWAY, do NOT wipe from playerDetails ===
             const p = room.gameState.players.find(pl => pl.uniqueId === uniqueId);
             if (p) {
                 p.isDisconnected = true;
                 p.lastDisconnectedAt = Date.now();
+
+                // Fast lightweight AWAY event - clients handle this instantly
+                io.to(code).emit('player_away', { uniqueId, isAway: true, name: p.name });
+
+                // Full state sync for consistency
                 io.to(code).emit('state_update', room.gameState);
                 redisManager.saveState(code, room.gameState);
             }
+            // Don't touch playerDetails or emit lobby_update during a game
+            return;
         }
-        
-        if (room.hostId === socket.id && !room.gameState) {
+
+        // === LOBBY PHASE cleanup ===
+        if (room.hostId === socket.id) {
             socket.to(code).emit('host_disconnected');
             delete rooms[code];
         } else {

@@ -119,6 +119,9 @@ function setupNavigation() {
     };
 
     document.getElementById("btn-profile-back").onclick = () => {
+        if (window.socket && window.currentRoomCode) {
+            window.socket.emit('leave_room', { roomCode: window.currentRoomCode, uniqueId: window.myUniqueId });
+        }
         dProfileSetup.classList.add("hidden");
         dMainMenu.classList.remove("hidden");
         // Clear room code so auto-reconnect doesn't jump us back in
