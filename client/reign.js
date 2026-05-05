@@ -225,10 +225,14 @@ function updateClientUI(newState) {
                 position: p.position, 
                 inJail: p.inJail, 
                 color: p.color, 
-                bankrupt: p.bankrupt 
+                bankrupt: p.bankrupt,
+                money: p.money
             }; 
         });
     }
+
+    const oldBoardOwners = (window.gameState.boardData || []).map(t => t.owner);
+    const oldBoardHouses = (window.gameState.boardData || []).map(t => t.houses || 0);
 
     Object.assign(window.gameState, newState);
     
@@ -258,6 +262,7 @@ function updateClientUI(newState) {
 
     // 2. State Prep: Identify movements and set animating status BEFORE initial render
     const animationsToStart = [];
+    const shakesToTrigger = [];
     if (window.gameState.players) {
         const currentIds = window.gameState.players.map(p => p.id);
         
@@ -292,6 +297,31 @@ function updateClientUI(newState) {
                         window.triggerDespawn({ id: p.id, color: p.color, position: p.position });
                     }
                 }
+
+                if (p.money !== old.money) {
+                    const isMe = (p.uniqueId === window.myUniqueId);
+                    if (isMe && p.money > old.money) {
+                        playSound("money");
+                    }
+                    if (p.money < old.money) {
+                        shakesToTrigger.push(p.id);
+                    }
+                }
+            }
+        });
+    }
+
+    // Detect Property Purchases & Building (Global)
+    if (window.gameState.boardData) {
+        window.gameState.boardData.forEach((tile, idx) => {
+            const oldOwner = oldBoardOwners[idx];
+            const oldHouses = oldBoardHouses[idx];
+            
+            const ownerGained = (tile.owner !== null && tile.owner !== undefined && oldOwner === null);
+            const houseGained = (tile.houses > oldHouses);
+
+            if (ownerGained || houseGained) {
+                playSound("property brought");
             }
         });
     }
@@ -304,10 +334,17 @@ function updateClientUI(newState) {
     updateTradeSidebar();
     checkTradeInvalidation();
 
-    // 4. Fire off animations on the freshly rendered board
+    // 4. Trigger collected shakes on fresh DOM (Tokens on board)
+    shakesToTrigger.forEach(pid => {
+        if (window.triggerTokenShake) {
+            window.triggerTokenShake(pid);
+        }
+    });
+
+    // 5. Fire off animations on the freshly rendered board
     animationsToStart.forEach(anim => {
         if (window.animateMovement) {
-            window.animateMovement(anim.id, anim.from, anim.to, anim.isTeleport);
+            window.animateMovement(anim.id, anim.from, anim.to, anim.isTeleport, false);
         }
     });
 
@@ -315,6 +352,7 @@ function updateClientUI(newState) {
     if (gameState.winner) {
         const dVictory = document.getElementById("victory-modal");
         if (dVictory && dVictory.classList.contains("hidden")) {
+            playSound("fanfare");
             dVictory.classList.remove("hidden");
             document.getElementById("winner-name-display").innerText = gameState.winner.name;
             document.getElementById("win-wealth").innerText = `$${gameState.winner.money}`;

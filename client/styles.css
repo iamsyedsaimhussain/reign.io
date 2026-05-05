@@ -1577,15 +1577,15 @@ input:-webkit-autofill:active {
 /* squash and stretch */
 @keyframes token-land {
     0% {
-        transform: translate(-50%, -50%) scale(1.2, 0.8);
+        transform: translate(-50%, -50%) translate(var(--sx, 0px), var(--sy, 0px)) scale(1.2, 0.8);
     }
 
     50% {
-        transform: translate(-50%, -50%) scale(0.9, 1.1);
+        transform: translate(-50%, -50%) translate(var(--sx, 0px), var(--sy, 0px)) scale(0.9, 1.1);
     }
 
     100% {
-        transform: translate(-50%, -50%) scale(1, 1);
+        transform: translate(-50%, -50%) translate(var(--sx, 0px), var(--sy, 0px)) scale(1, 1);
     }
 }
 
@@ -1608,19 +1608,32 @@ input:-webkit-autofill:active {
     border-color: #f87171 !important;
 }
 
+@keyframes token-shake-error {
+    0% { transform: translate(-50%, -50%) translate(var(--sx, 0px), var(--sy, 0px)) translateX(0); }
+    20% { transform: translate(-50%, -50%) translate(var(--sx, 0px), var(--sy, 0px)) translateX(-5px); }
+    40% { transform: translate(-50%, -50%) translate(var(--sx, 0px), var(--sy, 0px)) translateX(5px); }
+    60% { transform: translate(-50%, -50%) translate(var(--sx, 0px), var(--sy, 0px)) translateX(-5px); }
+    80% { transform: translate(-50%, -50%) translate(var(--sx, 0px), var(--sy, 0px)) translateX(5px); }
+    100% { transform: translate(-50%, -50%) translate(var(--sx, 0px), var(--sy, 0px)) translateX(0); }
+}
+
+.token.shake-error {
+    animation: token-shake-error 0.4s ease-in-out !important;
+}
+
 @keyframes token-spawn {
     0% {
-        transform: translate(-50%, -50%) scale(0);
+        transform: translate(-50%, -50%) translate(var(--sx, 0px), var(--sy, 0px)) scale(0);
         opacity: 0;
     }
 
     60% {
-        transform: translate(-50%, -50%) scale(1.4);
+        transform: translate(-50%, -50%) translate(var(--sx, 0px), var(--sy, 0px)) scale(1.4);
         opacity: 1;
     }
 
     100% {
-        transform: translate(-50%, -50%) scale(1);
+        transform: translate(-50%, -50%) translate(var(--sx, 0px), var(--sy, 0px)) scale(1);
         opacity: 1;
     }
 }
@@ -1631,17 +1644,17 @@ input:-webkit-autofill:active {
 
 @keyframes token-despawn {
     0% {
-        transform: translate(-50%, -50%) scale(1);
+        transform: translate(-50%, -50%) translate(var(--sx, 0px), var(--sy, 0px)) scale(1);
         opacity: 1;
     }
 
     40% {
-        transform: translate(-50%, -50%) scale(1.4);
+        transform: translate(-50%, -50%) translate(var(--sx, 0px), var(--sy, 0px)) scale(1.4);
         opacity: 1;
     }
 
     100% {
-        transform: translate(-50%, -50%) scale(0);
+        transform: translate(-50%, -50%) translate(var(--sx, 0px), var(--sy, 0px)) scale(0);
         opacity: 0;
     }
 }
@@ -3033,4 +3046,50 @@ input:-webkit-autofill:active {
 .transparent-overlay {
     background: rgba(0, 0, 0, 0.5) !important;
     backdrop-filter: blur(2px) !important;
+}
+
+/* Sleeping ZZZ Animation */
+.zzz-container {
+    position: absolute;
+    top: -20px;
+    right: -10px;
+    display: flex;
+    flex-direction: column;
+    pointer-events: none;
+    z-index: 100;
+}
+
+.zzz-container span {
+    color: #a78bfa;
+    font-weight: bold;
+    font-size: 14px;
+    line-height: 0.6;
+    animation: zzz-float 2s infinite ease-in-out;
+    opacity: 0;
+}
+
+.zzz-container span:nth-child(2) {
+    animation-delay: 0.6s;
+    font-size: 11px;
+    margin-left: 5px;
+}
+
+.zzz-container span:nth-child(3) {
+    animation-delay: 1.2s;
+    font-size: 8px;
+    margin-left: 10px;
+}
+
+@keyframes zzz-float {
+    0% {
+        transform: translate(0, 0) scale(0.5);
+        opacity: 0;
+    }
+    30% {
+        opacity: 1;
+    }
+    100% {
+        transform: translate(10px, -20px) scale(1.2);
+        opacity: 0;
+    }
 }

@@ -1,11 +1,15 @@
 // Button and Modal Event Handlers
 function setupUIListeners() {
-    document.getElementById("btn-roll").onclick = () => sendAction("ROLL");
+    document.getElementById("btn-roll").onclick = () => {
+        playSound("dice roll");
+        sendAction("ROLL");
+    };
     document.getElementById("btn-end-turn").onclick = () => sendAction("END_TURN");
     document.getElementById("btn-buy").onclick = () => {
         const cp = gameState.players[gameState.currentPlayerIndex];
         const tile = gameState.boardData[cp.position];
         if (cp && tile && cp.money < tile.price) {
+            playSound("buzzer");
             const btn = document.getElementById("btn-buy");
             btn.classList.add("shake-error");
             setTimeout(() => btn.classList.remove("shake-error"), 400);
@@ -14,7 +18,17 @@ function setupUIListeners() {
         sendAction("BUY");
     };
     document.getElementById("btn-auction").onclick = () => sendAction("AUCTION");
-    document.getElementById("btn-jail-fine").onclick = () => sendAction("JAIL_FINE");
+    document.getElementById("btn-jail-fine").onclick = () => {
+        const cp = gameState.players[gameState.currentPlayerIndex];
+        if (cp && cp.money < 50) {
+            playSound("buzzer");
+            const btn = document.getElementById("btn-jail-fine");
+            btn.classList.add("shake-error");
+            setTimeout(() => btn.classList.remove("shake-error"), 400);
+            return;
+        }
+        sendAction("JAIL_FINE");
+    };
     
     document.getElementById("btn-bid-1").onclick = () => placeQuickBid(1);
     document.getElementById("btn-bid-2").onclick = () => placeQuickBid(2);
@@ -254,6 +268,7 @@ let cardTick = null;
 function renderCardPopupUI() {
     if (!gameState.activeCard) return;
     
+    playSound("open_card");
     const dCard = document.getElementById("card-popup");
     const dDesc = document.getElementById("card-desc");
     const dOverlay = document.getElementById("overlay-container");

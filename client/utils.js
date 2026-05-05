@@ -19,6 +19,12 @@ function logActivity(msg) {
     log.scrollTop = log.scrollHeight;
 }
 
+function playSound(name) {
+    const audio = new Audio(`assets/audio/${name}.mp3`);
+    audio.play().catch(e => console.log("Audio play blocked:", e));
+}
+
 window.getActualColor = getActualColor;
 window.colors = colors;
 window.logActivity = logActivity;
+window.playSound = playSound;

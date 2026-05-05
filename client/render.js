@@ -245,9 +245,11 @@ function renderTokens() {
             const sx = (i - (group.length - 1) / 2) * 10;
             const sy = (i % 2 === 0 ? 4 : -4);
 
+            token.style.setProperty('--sx', `${sx}px`);
+            token.style.setProperty('--sy', `${sy}px`);
             token.style.top = top;
             token.style.left = left;
-            token.style.transform = `translate(-50%, -50%) translate(${sx}px, ${sy}px)`;
+            token.style.transform = `translate(-50%, -50%) translate(var(--sx), var(--sy))`;
 
             // Task: Cool Spawn/Despawn Animation
             if (p.status === 'active' && p.justLanded) {
@@ -257,6 +259,17 @@ function renderTokens() {
                 token.classList.add("despawning");
             }
 
+            if (window.activeShakes && window.activeShakes.has(p.id)) {
+                token.classList.add("shake-error");
+            }
+
+            if (p.sleepingTurns > 0) {
+                const zzz = document.createElement("div");
+                zzz.className = "zzz-container";
+                zzz.innerHTML = "<span>z</span><span>z</span><span>z</span>";
+                token.appendChild(zzz);
+            }
+
             tileEl.appendChild(token);
         });
     });
@@ -264,8 +277,11 @@ function renderTokens() {
 
 // --- Movement Animation: Tile Hop-Cursor Illusion ---
 
-async function animateMovement(playerId, startPos, endPos, isTeleport = false) {
-    if (startPos === endPos) return;
+async function animateMovement(playerId, startPos, endPos, isTeleport = false, shouldShake = false) {
+    if (startPos === endPos) {
+        if (shouldShake) triggerTokenShake(playerId);
+        return;
+    }
     
     const player = gameState.players.find(p => p.id === playerId);
     if (!player) return;
@@ -274,7 +290,27 @@ async function animateMovement(playerId, startPos, endPos, isTeleport = false) {
         isGlobalAnimating = true;
         renderUIControls(); // Lock UI
 
+        // Detect "Go To Jail" detour: If moving to jail (10) and the path landed on 30
+        let jailDetour = null;
+        if (player.inJail && endPos === 10 && startPos !== 10) {
+            const roll = gameState.lastRollValue || 0;
+            if (roll > 0 && (startPos + roll) % 40 === 30) {
+                jailDetour = 30;
+            }
+        }
+
+        if (jailDetour) {
+            // First: Normal hop to the "Go to Prison" tile
+            await animateMovement(playerId, startPos, jailDetour, false);
+            // Second: Teleport from 30 to 10
+            await animateMovement(playerId, jailDetour, 10, true);
+            return;
+        }
+
         if (isTeleport) {
+            // Mix shake with teleport if needed
+            if (shouldShake) triggerTokenShake(playerId);
+
             // Use the same premium sequence for teleports
             window.animatingPlayers[playerId] = '__hidden__';
             triggerDespawnAt(player, startPos);
@@ -300,8 +336,8 @@ async function animateMovement(playerId, startPos, endPos, isTeleport = false) {
             path.push(current);
         }
 
-        // Per-hop dwell time — sped up by ~1.25x (0.75x duration)
-        const hopDwell = Math.max(180, Math.min(360, 2100 / path.length));
+        // Standardized per-hop speed for consistent audio feedback
+        const hopDwell = 250; 
 
         const destTileEl = document.getElementById(`tile-${endPos}`);
 
@@ -327,6 +363,7 @@ async function animateMovement(playerId, startPos, endPos, isTeleport = false) {
         let prevTileEl = null;
         for (let i = 0; i < path.length; i++) {
             const tid = path[i];
+            playSound("step");
             const tileEl = document.getElementById(`tile-${tid}`);
 
             if (prevTileEl) prevTileEl.classList.remove("hop-cursor");
@@ -366,7 +403,27 @@ async function animateMovement(playerId, startPos, endPos, isTeleport = false) {
     } finally {
         isGlobalAnimating = false;
         renderUIControls(); // Restore buttons
+        if (shouldShake && !isTeleport) {
+            setTimeout(() => triggerTokenShake(playerId), 1000);
+        }
     }
+}
+
+window.activeShakes = new Set();
+function triggerTokenShake(playerId) {
+    if (!window.activeShakes) window.activeShakes = new Set();
+    window.activeShakes.add(playerId);
+    
+    const token = document.getElementById(`token-p-${playerId}`);
+    if (token) {
+        token.classList.add("shake-error");
+    }
+    
+    setTimeout(() => {
+        window.activeShakes.delete(playerId);
+        const t = document.getElementById(`token-p-${playerId}`);
+        if (t) t.classList.remove("shake-error");
+    }, 400);
 }
 
 
@@ -405,7 +462,7 @@ function updatePlayersUI() {
                 const tile = gameState.boardData[pid];
                 const d = document.createElement("div");
                 d.className = "trade-prop-item";
-                d.innerHTML = `<span>${tile.name}</span> ${getBuildingHTML(tile.houses)}`;
+                d.innerHTML = `<span>${tile.name}</span>`;
                 d.style.borderLeft = `4px solid ${getActualColor(tile.color || "transparent")}`;
                 list.appendChild(d);
             });

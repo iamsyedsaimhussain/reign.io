@@ -282,11 +282,15 @@ class GameEngine {
             state.taxHeavenPot += tile.price;
             state.log.push({ type: "sys", text: `${player.name} paid $${tile.price} tax` });
         } else if (tile.type === "tax_heaven") {
+            // New Rule: Collect Pot + Sleep for 2 Turns
+            player.sleepingTurns = 2;
+            let msg = `${player.name} landed on Tax Heaven and is taking a 2-turn nap! 😴`;
             if (state.taxHeavenPot > 0) {
                 player.money += state.taxHeavenPot;
-                state.log.push({ type: "sys", text: `${player.name} landed on Tax Heaven and collected $${state.taxHeavenPot}!` });
+                msg = `${player.name} landed on Tax Heaven, collected $${state.taxHeavenPot}, and is now sleeping for 2 turns! 😴`;
                 state.taxHeavenPot = 0;
             }
+            state.log.push({ type: "sys", text: msg });
         } else if (tile.type === "chance" || tile.type === "community_chest") {
             this.handleDrawCard(state, player.uniqueId, { type: tile.type });
             return; // handleDrawCard updates UI and return early
@@ -348,7 +352,14 @@ class GameEngine {
         // Loop to next player
         do {
             state.currentPlayerIndex = (state.currentPlayerIndex + 1) % state.players.length;
-        } while (state.players[state.currentPlayerIndex].bankrupt);
+            const next = state.players[state.currentPlayerIndex];
+            if (next.sleepingTurns > 0 && !next.bankrupt) {
+                next.sleepingTurns--;
+                state.log.push({ type: "sys", text: `${next.name} is sleeping... (${next.sleepingTurns} turns left)` });
+            } else if (!next.bankrupt) {
+                break;
+            }
+        } while (true);
 
         const nextP = state.players[state.currentPlayerIndex];
         this.updateUI(state, true, false, false, nextP.inJail);
