@@ -438,6 +438,35 @@ input:-webkit-autofill:active {
     border-radius: 10px;
 }
 
+/* Solo Trial Mode Button Styles */
+.trial-btn {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.2);
+    transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.trial-btn:hover {
+    transform: translateY(-2px) scale(1.03);
+    box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+    background: linear-gradient(135deg, #059669 0%, #047857 100%);
+}
+
+.trial-btn:active {
+    transform: translateY(0) scale(0.98);
+}
+
 /* GAME UI */
 #game-ui {
     min-height: 100vh;
@@ -746,19 +775,17 @@ input:-webkit-autofill:active {
     border-radius: 6px;
     border: 1px solid rgba(255, 255, 255, 0.08);
     cursor: pointer;
-    overflow: visible;
+    overflow: hidden;
     /* clips non-rotated content */
     box-sizing: border-box;
     z-index: 10;
     /* Above inner-board */
 }
 
-/* Left/right tiles MUST have overflow:visible so the rotated tile-inner
-   isn't clipped by the tile's pre-rotation bounding box.
-   The #board clips at the board edge instead. */
+/* Left/right tiles MUST have overflow:hidden to contain elements properly */
 .tile.left-col:not(.corner),
 .tile.right-col:not(.corner) {
-    overflow: visible;
+    overflow: hidden;
 }
 
 /* Centered absolute baseline for rotation */
@@ -772,7 +799,7 @@ input:-webkit-autofill:active {
     flex-direction: column;
     justify-content: flex-start;
     align-items: center;
-    padding: 6px 4px;
+    padding: 6px 2px;
     overflow: hidden;
     cursor: pointer;
     transition: filter 0.3s, background 0.3s;
@@ -794,6 +821,8 @@ input:-webkit-autofill:active {
 
 /* Text Hierarchy - Richup Style Containment */
 .title-container {
+    container-type: inline-size;
+    container-name: titlebox;
     width: 100%;
     max-height: 28%;
     /* Increased for 2-word stack */
@@ -805,30 +834,45 @@ input:-webkit-autofill:active {
     pointer-events: none;
 }
 
+/* Text Area Constraint for vertical / side tiles */
+.tile.left-col .title-container,
+.tile.right-col .title-container {
+    max-width: calc(100% - 4px);
+    max-height: 28%;
+}
+
 .tile .title {
+    font-family: 'Encode Sans Condensed', 'Outfit', sans-serif;
     font-size: 8.5px;
+    font-size: min(8.5px, 17cqw);
     font-weight: 700;
     text-transform: uppercase;
     text-align: center;
     width: 100%;
+    max-width: 100%;
     z-index: 2;
     color: #ffffff;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9);
-    line-height: 1;
+    line-height: 1.1;
     overflow: hidden;
     flex-shrink: 0;
+    letter-spacing: 0px;
 }
 
 .tile .title.single-word {
     white-space: nowrap;
-    /* Force 1 line */
-    text-overflow: clip;
+    word-break: keep-all;
+    overflow-wrap: normal;
+}
+
+.tile .title.compress-long {
+    font-size: min(8.0px, 16cqw) !important;
+    letter-spacing: -0.1px;
 }
 
 .tile .title.multi-word {
     white-space: normal;
-    /* Allow <br> to work */
-    word-break: normal;
+    word-break: keep-all;
     overflow-wrap: normal;
 }
 
@@ -1621,6 +1665,53 @@ input:-webkit-autofill:active {
     animation: token-shake-error 0.4s ease-in-out !important;
 }
 
+/* Jail-specific token animations to prevent translation jumps */
+@keyframes token-jail-shake-error {
+    0% { transform: translateX(0); }
+    20% { transform: translateX(-5px); }
+    40% { transform: translateX(5px); }
+    60% { transform: translateX(-5px); }
+    80% { transform: translateX(5px); }
+    100% { transform: translateX(0); }
+}
+
+@keyframes token-jail-spawn {
+    0% { transform: scale(0); opacity: 0; }
+    60% { transform: scale(1.4); opacity: 1; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+@keyframes token-jail-land-shake {
+    0% { transform: scale(0) translateX(0); opacity: 0; }
+    20% { transform: scale(1.4) translateX(-5px); opacity: 1; }
+    40% { transform: scale(1.1) translateX(5px); opacity: 1; }
+    60% { transform: scale(1.0) translateX(-5px); opacity: 1; }
+    80% { transform: scale(1.0) translateX(5px); opacity: 1; }
+    100% { transform: scale(1) translateX(0); opacity: 1; }
+}
+
+@keyframes token-jail-despawn {
+    0% { transform: scale(1); opacity: 1; }
+    40% { transform: scale(1.4); opacity: 1; }
+    100% { transform: scale(0); opacity: 0; }
+}
+
+.jail-container .token.shake-error {
+    animation: token-jail-shake-error 0.4s ease-in-out !important;
+}
+
+.jail-container .token.spawning {
+    animation: token-jail-spawn 1.0s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+}
+
+.jail-container .token.spawning-error {
+    animation: token-jail-land-shake 1.0s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards !important;
+}
+
+.jail-container .token.despawning {
+    animation: token-jail-despawn 0.35s cubic-bezier(0.6, -0.28, 0.735, 0.045) forwards !important;
+}
+
 @keyframes token-spawn {
     0% {
         transform: translate(-50%, -50%) translate(var(--sx, 0px), var(--sy, 0px)) scale(0);
@@ -1640,6 +1731,37 @@ input:-webkit-autofill:active {
 
 .token.spawning {
     animation: token-spawn 1.0s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes token-land-shake {
+    0% {
+        transform: translate(-50%, -50%) translate(var(--sx, 0px), var(--sy, 0px)) scale(0) translateX(0);
+        opacity: 0;
+    }
+    20% {
+        transform: translate(-50%, -50%) translate(var(--sx, 0px), var(--sy, 0px)) scale(1.4) translateX(-5px);
+        opacity: 1;
+    }
+    40% {
+        transform: translate(-50%, -50%) translate(var(--sx, 0px), var(--sy, 0px)) scale(1.1) translateX(5px);
+        opacity: 1;
+    }
+    60% {
+        transform: translate(-50%, -50%) translate(var(--sx, 0px), var(--sy, 0px)) scale(1.0) translateX(-5px);
+        opacity: 1;
+    }
+    80% {
+        transform: translate(-50%, -50%) translate(var(--sx, 0px), var(--sy, 0px)) scale(1.0) translateX(5px);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(-50%, -50%) translate(var(--sx, 0px), var(--sy, 0px)) scale(1) translateX(0);
+        opacity: 1;
+    }
+}
+
+.token.spawning-error {
+    animation: token-land-shake 1.0s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
 @keyframes token-despawn {
@@ -2583,10 +2705,15 @@ input:-webkit-autofill:active {
         border-radius: 0;
     }
 
+    .tile-inner {
+        padding: 4px 1.5px;
+    }
+
     /* Shrink tile details for tight mobile board */
     .tile .title {
-        font-size: 5.8px;
-        letter-spacing: -0.1px;
+        font-size: 7px;
+        font-size: min(7px, 17cqw);
+        letter-spacing: 0px;
         line-height: 1.1;
     }
 

@@ -65,6 +65,7 @@ function setupNavigation() {
     };
 
     document.getElementById("btn-join-enter").onclick = () => {
+        window.isTrialMode = false;
         const code = document.getElementById("join-code-input").value.trim().toUpperCase();
         if (code && window.socket) {
             window.socket.emit('join_room', { roomCode: code, uniqueId: myUniqueId });
@@ -73,6 +74,7 @@ function setupNavigation() {
 
     document.querySelectorAll(".btn-back").forEach(btn => {
         btn.onclick = () => {
+            window.isTrialMode = false;
             dHostSettings.classList.add("hidden");
             dJoinContainer.classList.add("hidden");
             dMainMenu.classList.remove("hidden");
@@ -80,7 +82,7 @@ function setupNavigation() {
     });
 
     document.getElementById("btn-lobby-start").onclick = () => {
-        if (lobbyPlayers.length < 2) {
+        if (lobbyPlayers.length < 2 && !window.isTrialMode) {
             return alert("Wait for at least 2 players to join!");
         }
         const boardType = document.getElementById("board-edition").value;
@@ -99,9 +101,17 @@ function setupNavigation() {
     };
 
     document.getElementById("btn-start-game").onclick = () => {
+        window.isTrialMode = false;
         const count = parseInt(document.getElementById("player-count").value);
         if (window.socket) {
             window.socket.emit('create_room', { maxPlayers: count, uniqueId: myUniqueId });
+        }
+    };
+
+    document.getElementById("btn-trial-mode").onclick = () => {
+        window.isTrialMode = true;
+        if (window.socket) {
+            window.socket.emit('create_room', { maxPlayers: 1, uniqueId: myUniqueId });
         }
     };
 
@@ -119,6 +129,7 @@ function setupNavigation() {
     };
 
     document.getElementById("btn-profile-back").onclick = () => {
+        window.isTrialMode = false;
         if (window.socket && window.currentRoomCode) {
             window.socket.emit('leave_room', { roomCode: window.currentRoomCode, uniqueId: window.myUniqueId });
         }
@@ -338,16 +349,20 @@ function updateClientUI(newState) {
     checkTradeInvalidation();
 
     // 4. Trigger collected shakes on fresh DOM (Tokens on board)
+    const movingPlayerIds = animationsToStart.map(a => a.id);
     shakesToTrigger.forEach(pid => {
-        if (window.triggerTokenShake) {
-            window.triggerTokenShake(pid);
+        if (!movingPlayerIds.includes(pid)) {
+            if (window.triggerTokenShake) {
+                window.triggerTokenShake(pid);
+            }
         }
     });
 
     // 5. Fire off animations on the freshly rendered board
     animationsToStart.forEach(anim => {
+        const needsShake = shakesToTrigger.includes(anim.id);
         if (window.animateMovement) {
-            window.animateMovement(anim.id, anim.from, anim.to, anim.isTeleport, false);
+            window.animateMovement(anim.id, anim.from, anim.to, anim.isTeleport, needsShake);
         }
     });
 

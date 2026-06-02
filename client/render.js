@@ -23,8 +23,10 @@ const UTILITY_ICONS = {
 
 function tileTitle(name) {
     const words = name.trim().split(" ");
-    const cls = words.length === 1 ? "title single-word" : "title multi-word";
-    return `<div class="title-container"><span class="${cls}">${name}</span></div>`;
+    let cls = words.length === 1 ? "title single-word" : "title multi-word";
+    if (words.length === 1 && name.length >= 10) cls += " compress-long";
+    const displayName = words.length === 2 ? words.join("<br>") : name;
+    return `<div class="title-container"><span class="${cls}">${displayName}</span></div>`;
 }
 
 function getBuildingHTML(houses) {
@@ -234,7 +236,7 @@ function renderTokens() {
             token.style.backgroundColor = p.color;
             token.id = `token-p-${p.id}`;
 
-            if (idx === 10 && p.status === 'active') {
+            if (idx === 10) {
                 const sub = p.inJail
                     ? tileEl.querySelector('.jail-prison')
                     : tileEl.querySelector('.jail-visiting');
@@ -253,8 +255,13 @@ function renderTokens() {
 
             // Task: Cool Spawn/Despawn Animation
             if (p.status === 'active' && p.justLanded) {
-                token.classList.add("spawning");
-                delete p.justLanded;
+                if (p.justLandedError) {
+                    token.classList.add("spawning-error");
+                    p.justLandedError = false;
+                } else {
+                    token.classList.add("spawning");
+                }
+                p.justLanded = false; // consume it
             } else if (p.status === 'despawning') {
                 token.classList.add("despawning");
             }
@@ -385,6 +392,9 @@ async function animateMovement(playerId, startPos, endPos, isTeleport = false, s
         // 2. Clear animation status and trigger respawn at DESTINATION
         delete animatingPlayers[playerId];
         player.justLanded = true;
+        if (shouldShake && !isTeleport) {
+            player.justLandedError = true;
+        }
         
         if (destTileEl) {
             destTileEl.classList.remove("destination-aura");
@@ -403,9 +413,6 @@ async function animateMovement(playerId, startPos, endPos, isTeleport = false, s
     } finally {
         isGlobalAnimating = false;
         renderUIControls(); // Restore buttons
-        if (shouldShake && !isTeleport) {
-            setTimeout(() => triggerTokenShake(playerId), 1000);
-        }
     }
 }
 
@@ -624,4 +631,4 @@ window.renderUIControls = renderUIControls;
 window.renderStateLog = renderStateLog;
 window.animateMoneyDelta = animateMoneyDelta;
 window.animateMovement = animateMovement;
-window.triggerDespawn = triggerDespawn;
+window.triggerDespawn = triggerDespawnAt;
